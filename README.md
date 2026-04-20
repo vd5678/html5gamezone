@@ -2,21 +2,26 @@
 
 個人製作的 HTML5 Canvas 網頁遊戲，無需安裝，直接用瀏覽器開啟即可遊玩。
 
+🎮 **線上遊玩：** https://vd5678.github.io/html5games/
+
 ## 遊戲列表
 
-| 檔案 | 遊戲 | 操作說明 |
-|------|------|----------|
-| `Arkanoid.html` | 快打磚塊 | ← → 移動，SPACE 發射／暫停，ESC 主畫面 |
-| `Snake.html`    | 貪食蛇   | ← → ↑ ↓ 控制方向 |
-| `Tetris.html`   | 俄羅斯方塊 | ← → 移動，↑ 旋轉，↓ 加速 |
+| 遊戲 | 線上連結 | 操作說明 |
+|------|----------|----------|
+| 快打磚塊 Arkanoid | [Play](https://vd5678.github.io/html5games/Arkanoid.html) | ← → 移動，SPACE 發射／暫停，ESC 主畫面 |
+| 貪食蛇 Snake      | [Play](https://vd5678.github.io/html5games/Snake.html)    | ← → ↑ ↓ 控制方向 |
+| 俄羅斯方塊 Tetris | [Play](https://vd5678.github.io/html5games/Tetris.html)   | ← → 移動，↑ 旋轉，↓ 加速，SPACE 直落 |
 
-## 遊玩方式
+## 功能特色
 
-直接用瀏覽器開啟對應的 `.html` 檔案即可，不需要伺服器或安裝任何套件。
+- 全觸控支援，可在手機上遊玩
+- 無需安裝，直接瀏覽器開啟
+- Web Audio API 合成音效
+- 響應式版面配置
 
 ## 版權聲明
 
-Copyright (c) 2026 victorhsliu  
+Copyright (c) 2026 Victor H.S. Liu  
 本專案採用 [MIT License](LICENSE) 授權。  
 你可以自由使用、修改與分享，但請保留版權聲明。
 
