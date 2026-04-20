@@ -253,7 +253,7 @@ function draw(){
     ctx.fillStyle=C.head; ctx.textAlign='center';
     ctx.font='bold 16px "Courier New",monospace'; ctx.fillText('- PAUSED -',W/2,H/2-10);
     ctx.font='11px "Courier New",monospace'; ctx.fillStyle=C.tail;
-    ctx.fillText('ENTER / SPACE to resume',W/2,H/2+14);
+    ctx.fillText(window.innerWidth<=600 ? 'TAP START/PAUSE to resume' : 'ENTER / SPACE to resume',W/2,H/2+14);
     ctx.textAlign='start';
   }
 }
@@ -272,15 +272,18 @@ function drawStart(){
   ctx.fillStyle=C.head;
   ctx.font='bold 32px "Courier New",monospace';
   ctx.fillText('SNAKE', W/2, 80);
-  ctx.font='12px "Courier New",monospace';
-  ctx.fillStyle=C.tail;
-  ctx.fillText('ARROW KEYS  -  move', W/2, 130);
-  ctx.fillText('ENTER / SPACE  -  start', W/2, 155);
-  ctx.fillText('P  -  pause', W/2, 180);
+  const isMobile = window.innerWidth <= 600;
+  if(!isMobile){
+    ctx.font='12px "Courier New",monospace';
+    ctx.fillStyle=C.tail;
+    ctx.fillText('ARROW KEYS  -  move', W/2, 130);
+    ctx.fillText('ENTER / SPACE  -  start', W/2, 155);
+    ctx.fillText('P  -  pause', W/2, 180);
+  }
   if(Math.floor(Date.now()/600)%2===0){
     ctx.fillStyle=C.head;
     ctx.font='bold 13px "Courier New",monospace';
-    ctx.fillText('[ PRESS ENTER ]', W/2, 230);
+    ctx.fillText(isMobile ? '[ TAP START ]' : '[ PRESS ENTER ]', W/2, 230);
   }
   ctx.textAlign='start';
 }
