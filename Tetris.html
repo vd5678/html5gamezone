@@ -1052,20 +1052,27 @@ setTimeout(resizeGame,0);
   tap('tBtn-pause','p');
 
   // Swipe on game canvas
-  let sx=null,sy=null;
+  let sx=null,sy=null,st=null;
   const gcv=document.getElementById('board');
   if(gcv){
-    gcv.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;e.preventDefault();},{passive:false});
+    gcv.addEventListener('touchstart',e=>{
+      sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();
+      e.preventDefault();
+    },{passive:false});
     gcv.addEventListener('touchend',e=>{
       if(sx===null)return;
       const dx=e.changedTouches[0].clientX-sx;
       const dy=e.changedTouches[0].clientY-sy;
       const ax=Math.abs(dx),ay=Math.abs(dy);
-      if(ax<12&&ay<12){fire('ArrowUp');sx=null;return;}
-      if(ax>ay){ fire(dx>0?'ArrowRight':'ArrowLeft'); }
-      else if(dy>0){ fire('ArrowDown'); }
-      else { fire('ArrowUp'); }
-      sx=null;
+      const elapsed=Date.now()-st;
+      sx=null;sy=null;st=null;
+      // Tap: very short, barely moved → rotate
+      if(ax<20&&ay<20){ fire('ArrowUp'); return; }
+      // Swipe: must be fast enough and long enough to be intentional
+      if(elapsed>600) return; // too slow → ignore
+      if(ax>ay && ax>30){ fire(dx>0?'ArrowRight':'ArrowLeft'); }
+      else if(dy>0 && ay>30){ fire('ArrowDown'); }
+      else if(ay>30){ fire('ArrowUp'); }
     },{passive:false});
   }
 })();
