@@ -9,28 +9,27 @@
 html, body {
   width:100%; height:100dvh;
   background:#000;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
+  display:block;
   overflow:hidden;
   font-family:'Courier New', monospace;
   touch-action:none;
 }
 canvas {
   display:block;
+  position:fixed;
+  top:0; left:0;
   image-rendering:pixelated;
   image-rendering:crisp-edges;
-  border: 2px solid #1a3a66;
-  box-shadow: 0 0 12px #0cf5, 0 0 32px #0cf2;
-  border-radius: 4px;
 }
 
-/* ── Mobile controls ── */
 #mobile-controls {
+  position:fixed;
+  bottom:6px;
+  left:0; width:100%;
   display:none;
   flex-direction:column;
   align-items:center;
   gap:8px;
-  margin-top:8px;
 }
 .mrow { display:flex; gap:10px; align-items:center; }
 .mbtn {
@@ -53,7 +52,6 @@ canvas {
 #mbtn-drop { border-color:#f44; color:#f44; font-size:13px; padding:10px 14px; }
 #mbtn-pause { border-color:#888; color:#888; font-size:11px; padding:8px 12px; }
 @media (max-width:700px) {
-  body { justify-content:flex-start; padding-top:4px; }
   #mobile-controls { display:flex; }
 }
 </style>
@@ -199,26 +197,42 @@ function computeLayout() {
   const isMobile = vw <= 700;
   const mctrl = document.getElementById('mobile-controls');
   const mctrlH = isMobile ? (mctrl.offsetHeight > 0 ? mctrl.offsetHeight : 90) : 0;
-  const availH = vh - (isMobile ? 8 : 16) - mctrlH;
-  const availW = vw - (isMobile ? 4 : SIDEBAR_W + 24);
+  const availH = vh - mctrlH;
+  const availW = vw;
 
-  CELL = isMobile
-    ? Math.max(10, Math.min(availH / (ROWS + 2), availW / COLS))
-    : Math.max(12, Math.min(24, Math.floor(availH / (ROWS + 2)), Math.floor((availW) / (COLS + 5))));
-
-  const bottleW = COLS * CELL + WALL * 2;
-  const bottleH = ROWS * CELL + WALL + BOT_PAD;
-
-  BX = WALL;
-  BY = WALL;
-  SIDEBAR_X = bottleW + 6;
-  CW = isMobile ? bottleW : bottleW + SIDEBAR_W + 6;
-  CH = bottleH + 16;
-
+  // Canvas fills the full available viewport
+  CW = availW;
+  CH = availH;
   canvas.width  = CW;
   canvas.height = CH;
-  canvas.style.width  = CW + 'px';
-  canvas.style.height = CH + 'px';
+  canvas.style.width  = '';
+  canvas.style.height = '';
+
+  const sidebarCols = isMobile ? 0 : 4.5;
+  // Two-pass: estimate sidebar from first-pass CELL, then recompute
+  let cell0 = Math.min(
+    (availH - WALL * 2 - BOT_PAD) / ROWS,
+    availW / (COLS + sidebarCols + 1)
+  );
+  const dynSidebar0 = isMobile ? 0 : Math.round(cell0 * sidebarCols);
+  CELL = Math.max(10, Math.min(
+    (availH - WALL * 2 - BOT_PAD) / ROWS,
+    (availW - (dynSidebar0 > 0 ? dynSidebar0 + 6 : 0) - WALL * 2) / COLS
+  ));
+
+  const bottleW = Math.round(COLS * CELL + WALL * 2);
+  const bottleH = Math.round(ROWS * CELL + WALL + BOT_PAD);
+  const dynSidebar = isMobile ? 0 : Math.round(CELL * sidebarCols);
+  const totalW = bottleW + (dynSidebar > 0 ? dynSidebar + 6 : 0);
+
+  // Center the whole game (bottle + sidebar) inside canvas
+  const offsetX = Math.round((CW - totalW) / 2);
+  const offsetY = Math.round((CH - bottleH - 8) / 2);
+
+  BX = offsetX + WALL;
+  BY = offsetY + WALL;
+  SIDEBAR_X = offsetX + bottleW + 6;
+  window._dynSidebarW = dynSidebar;
 }
 
 // ── Board helpers ─────────────────────────────────────────
@@ -544,15 +558,18 @@ function drawBottle() {
 
 function drawSidebar() {
   if (CW <= COLS*CELL + WALL*2 + 10) return; // no room (mobile)
+  const SW = window._dynSidebarW || SIDEBAR_W;
   const sx = SIDEBAR_X + 2;
-  const mid = sx + SIDEBAR_W/2;
+  const mid = sx + SW/2;
+  const fs = Math.max(6, Math.round(CELL * 0.38));
+  const fv = Math.max(8, Math.round(CELL * 0.55));
 
   function label(txt, y) {
-    ctx.fillStyle='#556'; ctx.font='bold 6px monospace'; ctx.textAlign='center';
+    ctx.fillStyle='#556'; ctx.font=`bold ${fs}px monospace`; ctx.textAlign='center';
     ctx.fillText(txt, mid, y);
   }
   function val(txt, y, col) {
-    ctx.fillStyle=col||'#fff'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+    ctx.fillStyle=col||'#fff'; ctx.font=`bold ${fv}px monospace`; ctx.textAlign='center';
     ctx.fillText(txt, mid, y);
   }
 
