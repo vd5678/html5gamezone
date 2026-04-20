@@ -412,12 +412,18 @@ function sfx(type){
   if(type==='move'){  sq(220,0.04,0.05); }
   else if(type==='rotate'){ sq(440,0.05,0.08); }
   else if(type==='land'){
+    // Thud: short descending tone + low noise hit
     const o=AC.createOscillator(),g=AC.createGain();
     o.type='square';
-    o.frequency.setValueAtTime(180,t);
-    o.frequency.exponentialRampToValueAtTime(60,t+0.1);
-    g.gain.setValueAtTime(0.13,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);
+    o.frequency.setValueAtTime(220,t);
+    o.frequency.exponentialRampToValueAtTime(55,t+0.08);
+    g.gain.setValueAtTime(0.32,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);
     o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+0.13);
+    // Second layer: low thud
+    const o2=AC.createOscillator(),g2=AC.createGain();
+    o2.type='sawtooth'; o2.frequency.value=80;
+    g2.gain.setValueAtTime(0.18,t);g2.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
+    o2.connect(g2);g2.connect(AC.destination);o2.start(t);o2.stop(t+0.1);
   }
   else if(type==='clear'){
     [0,0.06,0.12,0.18].forEach((d,i)=>setTimeout(()=>sq(440+i*110,0.12,0.12),d*1000));
@@ -533,8 +539,12 @@ function renderWithFlash(white){
 
 function finishClear(){
   const n=clearingRows.length;
-  clearingRows.sort((a,b)=>b-a).forEach(r=>{
-    board.splice(r,1); board.unshift(new Array(COLS).fill(0));
+  // Sort descending; apply +offset to compensate for prior splice+unshift shifts
+  clearingRows.sort((a,b)=>b-a);
+  let offset=0;
+  clearingRows.forEach(r=>{
+    board.splice(r+offset,1); board.unshift(new Array(COLS).fill(0));
+    offset++;
   });
   clearingRows=[]; clearing=false;
   lines+=n; score+=PTS[n]*(level+1);
