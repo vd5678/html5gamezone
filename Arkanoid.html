@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>快打磚塊 ARKANOID</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -47,8 +47,8 @@
     display: none;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    margin-top: 6px;
+    gap: 14px;
+    margin-top: 14px;
     width: 100%;
   }
   #ctrl-func-row {
@@ -61,7 +61,7 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
-    padding: 0 12px;
+    padding: 0;
   }
   .mBtn {
     background: #1a1a2e;
@@ -81,7 +81,7 @@
   #btn-menu  { font-size: 13px; padding: 10px 16px; border-color: #f44; color: #f44; box-shadow: 0 0 8px #f446; }
 
   @media (max-width: 700px) {
-    body { align-items: flex-start; padding-top: 4px; overflow: hidden; }
+    body { align-items: flex-start; padding-top: 4px; overflow: hidden; touch-action: none; }
     #wrapper { flex-direction: column; align-items: center; gap: 4px; width: 100%; }
     #sidebar { order: 0; display: flex; flex-wrap: wrap; gap: 0 18px; width: 100%; justify-content: center; font-size: 13px !important; }
     #canvas-container { order: 1; }
@@ -144,17 +144,22 @@ function resizeGame() {
   const isMobile = vw <= 700;
   let availW, availH;
   if (isMobile) {
-    // On mobile: full width minus small padding; height minus sidebar bar (~36px), controls (~108px = 2 rows), padding (~12px)
+    const hudEl = document.getElementById('sidebar');
+    const ctrlEl = document.getElementById('mobile-controls');
+    const hudH = (hudEl && hudEl.offsetHeight > 0) ? hudEl.offsetHeight : 38;
+    const ctrlH = (ctrlEl && ctrlEl.offsetHeight > 0) ? ctrlEl.offsetHeight : 148;
     availW = vw - 8;
-    availH = vh - 36 - 108 - 16;
+    availH = vh - hudH - ctrlH - 28;
   } else {
-    // Desktop: fill viewport minus sidebar, with safe padding
     availW = vw - SIDEBAR_W - GAP - 32;
     availH = vh - 32;
   }
   SCALE = Math.max(1, Math.floor(Math.min(availW / W, availH / H)));
   canvas.width  = W * SCALE;
   canvas.height = H * SCALE;
+  // Align mobile-controls width to canvas so dir buttons line up with canvas edges
+  const ctrlEl = document.getElementById('mobile-controls');
+  if (isMobile && ctrlEl) ctrlEl.style.width = canvas.width + 'px';
   const fs = Math.max(10, Math.round(SCALE * 4.5));
   sidebar.style.width    = isMobile ? '100%' : SIDEBAR_W + 'px';
   sidebar.style.fontSize = isMobile ? '12px' : fs + 'px';
@@ -162,6 +167,7 @@ function resizeGame() {
 }
 
 resizeGame();
+setTimeout(resizeGame, 0); // re-run after layout to get accurate offsetHeight
 window.addEventListener('resize', resizeGame);
 
 // ─── Audio Engine ────────────────────────────────────────
