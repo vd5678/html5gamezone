@@ -154,7 +154,8 @@ function resizeGame() {
     availW = vw - SIDEBAR_W - GAP - 32;
     availH = vh - 32;
   }
-  SCALE = Math.max(1, Math.floor(Math.min(availW / W, availH / H)));
+  const rawScale = Math.min(availW / W, availH / H);
+  SCALE = isMobile ? Math.max(1, rawScale) : Math.max(1, Math.floor(rawScale));
   canvas.width  = W * SCALE;
   canvas.height = H * SCALE;
   // Align mobile-controls width to canvas so dir buttons line up with canvas edges
@@ -167,7 +168,7 @@ function resizeGame() {
 }
 
 resizeGame();
-setTimeout(resizeGame, 0); // re-run after layout to get accurate offsetHeight
+requestAnimationFrame(() => requestAnimationFrame(resizeGame)); // re-run after 2 frames for accurate offsetHeight
 window.addEventListener('resize', resizeGame);
 
 // ─── Audio Engine ────────────────────────────────────────
@@ -804,6 +805,15 @@ setupMobileBtn('btn-fire', () => {
   if (STATE === 'PLAYING') {
     const stuck = balls.find(b => b.stuck);
     if (stuck) { stuck.stuck = false; stuck.vx = 1.5; stuck.vy = -2.5; }
+    else if (pad.laser) {
+      laserCooldown -= 999;
+      if (laserCooldown <= 0) {
+        lasers.push({ x: pad.x + 4, y: PAD_Y });
+        lasers.push({ x: pad.x + pad.w - 4, y: PAD_Y });
+        sndLaser();
+        laserCooldown = 300;
+      }
+    }
     else { STATE = 'PAUSED'; }
   } else if (STATE === 'PAUSED') { STATE = 'PLAYING'; }
 });
