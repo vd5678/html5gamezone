@@ -1,4 +1,4 @@
-# Html5Games – 網頁遊戲合集
+# HTML5 GameZone – 網頁遊戲合集
 
 個人製作的 HTML5 Canvas 網頁遊戲，無需安裝，直接用瀏覽器開啟即可遊玩。
 
