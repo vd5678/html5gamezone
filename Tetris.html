@@ -2,6 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>TETRIS</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
 <style>
@@ -210,7 +211,8 @@ canvas#board{ display:block; }
    NES / Game Boy 風格俄羅斯方塊  —  完整版
    ================================================================ */
 
-const COLS=10, ROWS=20, SZ=20;
+const COLS=10, ROWS=20;
+let SZ=20;
 
 // NES Tetris 各等級下落間隔 (ms)
 const SPD=[800,717,633,550,467,383,300,217,133,100,
@@ -781,6 +783,27 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+/* ── Mobile resize ─────────────────────────────────── */
+function resizeGame(){
+  if(window.innerWidth>700)return;
+  // Hide side panels already handled by CSS.
+  // Available area: full width, height minus topbar(32) + controls(~170) + padding(~12)
+  const vw=window.innerWidth;
+  const vh=window.innerHeight;
+  const availW=vw-4;            // 2px padding each side
+  const availH=vh-32-170-12;   // topbar + controls + padding
+  const newSZ=Math.max(14,Math.floor(Math.min(availW/COLS, availH/ROWS)));
+  if(newSZ===SZ)return;
+  SZ=newSZ;
+  bCv.width=COLS*SZ; bCv.height=ROWS*SZ;
+  // Redraw
+  bCtx.fillStyle='#000012'; bCtx.fillRect(0,0,bCv.width,bCv.height);
+  if(typeof render==='function'&&board) render();
+}
+window.addEventListener('resize',resizeGame);
+// Delay to ensure DOM is ready
+setTimeout(resizeGame,0);
+
 /* ── Mobile touch controls ── */
 (function(){
   const css=document.createElement('style');
@@ -810,8 +833,27 @@ document.addEventListener('keydown',e=>{
     #tBtn-drop{width:136px;font-size:13px;color:#ff0;border-color:#ff0;}
     #tBtn-pause{width:84px;font-size:11px;color:#0cf;border-color:#0cf;}
     @media(max-width:700px){
+      body{
+        flex-direction:column;
+        align-items:stretch;
+        justify-content:flex-start;
+        padding-top:4px;
+        height:100vh;
+        height:100dvh;
+        overflow:hidden;
+      }
+      #app{
+        flex-direction:column;
+        align-items:center;
+        border:none;
+        box-shadow:none;
+        width:100%;
+      }
+      #left-panel,#right-panel{display:none;}
+      #center{width:100%;}
+      #topbar{border-left:none;border-right:none;}
+      #board-wrap{border-left:none;border-right:none;border-bottom:none;}
       #tet-mobile{display:flex;}
-      body{align-items:flex-start;padding-top:6px;}
     }
   `;
   document.head.appendChild(css);
@@ -834,7 +876,7 @@ document.addEventListener('keydown',e=>{
       <button class="tBtn" id="tBtn-pause">PAUSE</button>
     </div>
   `;
-  document.body.appendChild(div);
+  document.getElementById('app').appendChild(div);
 
   function fire(keyName,type='keydown'){
     const e=new KeyboardEvent(type,{key:keyName,bubbles:true,cancelable:true});
