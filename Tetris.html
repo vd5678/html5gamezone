@@ -189,26 +189,39 @@ canvas#board{ display:block; }
     flex-direction:column;
     align-items:stretch;
     justify-content:flex-start;
-    padding-top:4px;
+    padding-top:0;
     height:100vh;
     height:100dvh;
     overflow:hidden;
   }
   #app{
     flex-direction:column;
-    align-items:center;
+    align-items:stretch;
     border:none;
     box-shadow:none;
-    width:100%;
+    width:100vw;
     overflow:hidden;
   }
   #left-panel,#right-panel{display:none;}
-  #center{width:100%;}
+  #center{
+    width:100vw;
+    align-items:stretch;
+  }
   #topbar{display:none;}
   #mobile-hud{display:flex;}
-  #mobile-game-area{display:flex;flex-direction:row;align-items:flex-start;width:100%;}
-  #board-wrap{border-left:none;border-right:none;border-bottom:none;flex:0 0 auto;}
-  #mobile-next-box{display:flex;flex:0 0 56px;}
+  #mobile-game-area{
+    display:flex;
+    flex-direction:row;
+    align-items:flex-start;
+    width:100vw;
+    overflow:hidden;
+  }
+  #board-wrap{
+    border:none;
+    flex:1 1 auto;
+    overflow:hidden;
+  }
+  #mobile-next-box{display:flex;flex:0 0 58px;}
   .key-sub{display:none;}
   #tet-mobile{display:flex;}
 }</style>
@@ -929,14 +942,15 @@ document.addEventListener('keydown',e=>{
 /* ── Mobile resize ─────────────────────────────────── */
 function resizeGame(){
   if(window.innerWidth>700)return;
-  const NEXT_W=58; // mobile-next-box
-  const HUD_H=30;  // mobile-hud
+  const NEXT_W=58;
+  const HUD_H=document.getElementById('mobile-hud').offsetHeight||28;
+  const CTRL_H=document.getElementById('tet-mobile')
+               ? document.getElementById('tet-mobile').offsetHeight||170 : 170;
   const vw=window.innerWidth;
   const vh=window.innerHeight;
-  const availW=vw-NEXT_W-4;
-  const availH=vh-HUD_H-170-12;
+  const availW=vw-NEXT_W;
+  const availH=vh-HUD_H-CTRL_H-8;
   const newSZ=Math.max(14,Math.floor(Math.min(availW/COLS, availH/ROWS)));
-  if(newSZ===SZ)return;
   SZ=newSZ;
   bCv.width=COLS*SZ; bCv.height=ROWS*SZ;
   bCtx.fillStyle='#000012'; bCtx.fillRect(0,0,bCv.width,bCv.height);
