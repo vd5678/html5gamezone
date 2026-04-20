@@ -185,6 +185,21 @@
     </div>
   </a>
 
+  <!-- Dr. Pill -->
+  <a class="card" href="DrPill.html" style="--accent:#f44;--accent-glow:#f442;">
+    <div class="thumb-wrap">
+      <canvas id="thumb-drpill" width="224" height="256"></canvas>
+      <div class="card-overlay"><span class="play-btn">▶ PLAY</span></div>
+    </div>
+    <div class="card-info">
+      <div class="card-title">DR. PILL</div>
+      <div class="card-sub">消滅病毒 · 膠囊配對<br>20關挑戰 · 4消連鎖</div>
+      <span class="card-tag">← →</span>
+      <span class="card-tag">Z/X 旋轉</span>
+      <span class="card-tag">TOUCH</span>
+    </div>
+  </a>
+
   <!-- Tetris -->
   <a class="card" href="Tetris.html" style="--accent:#ff0;--accent-glow:#ff022;">
     <div class="thumb-wrap">
@@ -400,6 +415,81 @@
     ctx.fillStyle=col; ctx.fillRect(nx,ny,9,9);
     ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(nx+1,ny+1,7,2);
   }));
+})();
+
+// ── Dr. Pill thumbnail ──────────────────────────────────
+(function(){
+  const cv = document.getElementById('thumb-drpill');
+  const ctx = cv.getContext('2d');
+  const W=224, H=256;
+  const CELL=13, COLS=8, ROWS=16;
+  const WALL=8;
+  const BX=WALL, BY=WALL;
+  const FILL=['#cc2020','#c8a800','#1845c8'];
+  const LITE=['#f07070','#f0e060','#6090f8'];
+  const DARK=['#700808','#705800','#0c2070'];
+  const R=0,Y=1,B=2;
+
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+
+  // Bottle
+  const bw=COLS*CELL+WALL*2, bh=ROWS*CELL+WALL+12;
+  const g=ctx.createLinearGradient(0,0,bw,0);
+  g.addColorStop(0,'#99ccff'); g.addColorStop(0.08,'#1a3a66');
+  g.addColorStop(0.92,'#1a3a66'); g.addColorStop(1,'#99ccff');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.roundRect(0,WALL-2,bw,bh,6); ctx.fill();
+  ctx.fillStyle='#000'; ctx.fillRect(BX,BY,COLS*CELL,ROWS*CELL);
+  // Neck
+  const nw=Math.round(COLS*CELL*0.42), nx=BX+Math.round((COLS*CELL-nw)/2);
+  ctx.fillStyle='#1a3a66'; ctx.fillRect(nx-WALL,0,nw+WALL*2,WALL);
+  ctx.fillStyle='#99ccff'; ctx.fillRect(nx-WALL,0,WALL,WALL); ctx.fillRect(nx+nw,0,WALL,WALL);
+
+  function cap(c,r,col){
+    const px=BX+c*CELL, py=BY+r*CELL;
+    ctx.fillStyle=FILL[col]; ctx.beginPath(); ctx.roundRect(px+1,py+1,CELL-2,CELL-2,2); ctx.fill();
+    ctx.fillStyle=LITE[col]; ctx.fillRect(px+2,py+2,CELL-5,2);
+  }
+  function virus(c,r,col){
+    const px=BX+c*CELL, py=BY+r*CELL;
+    const cx=px+CELL/2, cy=py+CELL/2;
+    ctx.fillStyle=FILL[col]; ctx.beginPath();
+    ctx.ellipse(cx,cy,CELL/2-1,CELL/2-1,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.fillRect(cx-3,cy-2,2,2); ctx.fillRect(cx+1,cy-2,2,2);
+    ctx.fillStyle='#111'; ctx.fillRect(cx-2,cy-1,1,1); ctx.fillRect(cx+2,cy-1,1,1);
+    ctx.fillStyle=DARK[col]; ctx.fillRect(cx-2,cy+2,4,1);
+  }
+
+  // Scattered viruses in lower half
+  const vmap=[[R,3,9],[Y,6,10],[B,1,11],[R,5,12],[Y,2,13],[B,7,11],[R,4,14],[Y,0,13],[B,5,10],[R,2,12]];
+  vmap.forEach(([c,col,r])=>virus(col,r,c));
+
+  // A few stacked capsules
+  cap(0,8,B); cap(1,8,R);
+  cap(3,7,Y); cap(4,7,Y);
+  cap(6,9,R); cap(7,9,B);
+  // Active capsule falling
+  cap(3,4,R); cap(4,4,Y);
+  // Ghost
+  const gx0=BX+3*CELL, gx1=BX+4*CELL, gy=BY+8*CELL;
+  ctx.globalAlpha=0.22;
+  ctx.fillStyle=FILL[R]; ctx.beginPath(); ctx.roundRect(gx0+1,gy+1,CELL-2,CELL-2,2); ctx.fill();
+  ctx.fillStyle=FILL[Y]; ctx.beginPath(); ctx.roundRect(gx1+1,gy+1,CELL-2,CELL-2,2); ctx.fill();
+  ctx.globalAlpha=1;
+
+  // Sidebar
+  const SX=bw+4, SW=W-SX-2;
+  ctx.fillStyle='#0a0a1a'; ctx.fillRect(SX,BY,SW,bh-WALL);
+  ctx.fillStyle='#556'; ctx.font='bold 6px monospace'; ctx.textAlign='center';
+  ctx.fillText('NEXT',SX+SW/2,BY+11);
+  cap(0,0,Y); // next preview trick: draw at position
+  const np1=SX+4, np2=SX+4+CELL;
+  ctx.fillStyle=FILL[Y]; ctx.beginPath(); ctx.roundRect(np1,BY+14,CELL-2,CELL-2,2); ctx.fill();
+  ctx.fillStyle=FILL[B]; ctx.beginPath(); ctx.roundRect(np2,BY+14,CELL-2,CELL-2,2); ctx.fill();
+  function sLabel(t,y){ctx.fillStyle='#556';ctx.font='bold 6px monospace';ctx.textAlign='center';ctx.fillText(t,SX+SW/2,y);}
+  function sVal(t,y,c){ctx.fillStyle=c;ctx.font='bold 8px monospace';ctx.textAlign='center';ctx.fillText(t,SX+SW/2,y);}
+  sLabel('SCORE',BY+46); sVal('0084200',BY+56,'#ff0');
+  sLabel('LEVEL', BY+70); sVal('07',BY+80,'#0f0');
+  sLabel('VIRUS', BY+94); sVal('06',BY+104,'#f44');
 })();
 </script>
 </body>
