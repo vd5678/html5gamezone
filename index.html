@@ -186,7 +186,7 @@
   <!-- Tetris -->
   <a class="card" href="Tetris.html" style="--accent:#ff0;--accent-glow:#ff022;">
     <div class="thumb-wrap">
-      <canvas id="thumb-tetris" width="260" height="340"></canvas>
+      <canvas id="thumb-tetris" width="224" height="256"></canvas>
       <div class="card-overlay"><span class="play-btn">▶ PLAY</span></div>
     </div>
     <div class="card-info">
@@ -321,10 +321,10 @@
 (function(){
   const cv = document.getElementById('thumb-tetris');
   const ctx = cv.getContext('2d');
-  const W=260, H=340;
-  const CELL=20, COLS=9, ROWS=15;
-  const OX=8, OY=8;
-  const BW=COLS*CELL, BH=ROWS*CELL;
+  const W=224, H=256;
+  const CELL=16, COLS=10, ROWS=15;
+  const OX=4, OY=8;
+  const BW=COLS*CELL, BH=ROWS*CELL; // 160 x 240
 
   ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
 
@@ -342,58 +342,61 @@
     const g=ctx.createLinearGradient(px,py,px,py+s);
     g.addColorStop(0,col+'ee'); g.addColorStop(1,col+'77');
     ctx.fillStyle=g; ctx.fillRect(px,py,s,s);
-    ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(px+1,py+1,s-2,3);
-    ctx.strokeStyle=col+'cc'; ctx.lineWidth=0.5;
-    ctx.strokeRect(px,py,s,s);
+    ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fillRect(px+1,py+1,s-2,3);
+    ctx.strokeStyle=col+'cc'; ctx.lineWidth=0.5; ctx.strokeRect(px,py,s,s);
   }
 
-  // Stacked blocks
+  // Stacked board – colorful blocks filling most of the board
+  const C='#0ff',O='#ff0',T='#d0f',S='#0f0',Z='#f00',J='#00f',L='#f80';
   const board=[
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,'#f00','#f00',0,0,0],
-    [0,0,'#f80','#f80','#f80','#f00',0,0,0],
-    [0,'#ff0','#ff0','#0d0','#0d0','#0d0',0,0,0],
-    ['#00f','#ff0','#ff0','#0d0','#f80','#f80','#f80',0,0],
-    ['#00f','#0ee','#0ee','#f00','#f80','#ff0','#ff0','#00f',0],
-    ['#00f','#0ee','#f00','#f00','#ff0','#ff0','#0d0','#00f','#00f'],
-    ['#0d0','#0d0','#f80','#f80','#f80','#0ee','#0ee','#0ee','#00f'],
-    ['#00f','#f00','#f80','#ff0','#ff0','#0d0','#0ee','#00f','#00f'],
+    [0,0,0,0,0,0,0,0,0,0],  // row 0  (active piece space)
+    [0,0,0,0,0,0,0,0,0,0],  // row 1
+    [0,0,0,0,0,0,0,0,0,0],  // row 2
+    [J,J,0,Z,Z,T,T,T,S,S],  // row 3
+    [J,0,Z,Z,T,0,0,S,S,O],  // row 4
+    [L,L,L,C,C,C,C,0,O,O],  // row 5
+    [0,L,O,O,S,S,J,0,0,O],  // row 6
+    [Z,0,O,O,S,Z,Z,J,J,0],  // row 7
+    [Z,Z,T,T,T,0,Z,0,J,L],  // row 8
+    [0,Z,0,T,O,O,L,L,L,L],  // row 9
+    [C,C,C,C,O,O,0,S,S,0],  // row 10
+    [J,J,0,Z,Z,S,S,T,T,T],  // row 11
+    [J,L,L,Z,0,Z,S,0,T,L],  // row 12
+    [J,L,O,O,C,C,C,C,T,L],  // row 13
+    [L,L,O,O,Z,Z,S,S,T,T],  // row 14
   ];
   board.forEach((row,r)=>row.forEach((col,c)=>{ if(col) drawCell(c,r,col); }));
 
-  // Active T-piece
-  [[1,2,3],[0,0,1]].forEach((row,r)=>row.forEach((on,c)=>{
-    if(on) drawCell(c+3, r+5, '#d0f');
+  // Active T-piece falling (row 0–1, centered)
+  [[0,T,0],[T,T,T]].forEach((row,r)=>row.forEach((col,c)=>{
+    if(col) drawCell(c+3, r, col);
   }));
 
+  // Ghost piece (faint)
+  ctx.globalAlpha=0.22;
+  [[0,T,0],[T,T,T]].forEach((row,r)=>row.forEach((col,c)=>{
+    if(col) drawCell(c+3, r+2, col);
+  }));
+  ctx.globalAlpha=1;
+
   // Sidebar
-  const SX=OX+BW+8, SW=W-SX-4;
+  const SX=OX+BW+6, SW=W-SX-2;
   ctx.fillStyle='#0a0a18'; ctx.fillRect(SX,OY,SW,BH);
 
-  function label(text,y,col){ ctx.fillStyle=col||'#556'; ctx.font='bold 7px monospace'; ctx.textAlign='center'; ctx.fillText(text,SX+SW/2,y); }
-  function value(text,y,col){ ctx.fillStyle=col||'#fff'; ctx.font='bold 10px monospace'; ctx.textAlign='center'; ctx.fillText(text,SX+SW/2,y); }
+  function sLabel(text,y){ ctx.fillStyle='#556'; ctx.font='bold 6px monospace'; ctx.textAlign='center'; ctx.fillText(text,SX+SW/2,y); }
+  function sValue(text,y,col){ ctx.fillStyle=col||'#fff'; ctx.font='bold 9px monospace'; ctx.textAlign='center'; ctx.fillText(text,SX+SW/2,y); }
 
-  label('SCORE',OY+18);
-  value('84320',OY+34,'#ff0');
-  label('LEVEL',OY+58);
-  value('8',OY+74,'#0cf');
-  label('LINES',OY+96);
-  value('72',OY+112,'#0cf');
-  label('NEXT',OY+134);
+  sLabel('SCORE',OY+14); sValue('84320',OY+26,'#ff0');
+  sLabel('LEVEL',OY+44); sValue('8',    OY+56,'#0cf');
+  sLabel('LINES',OY+72); sValue('72',   OY+84,'#0cf');
+  sLabel('NEXT', OY+102);
 
-  // Next piece (L-shape)
-  const next=[['#f80','#f80'],['#f80',0],['#f80',0]];
-  next.forEach((row,r)=>row.forEach((col,c)=>{
+  // Next piece – L shape
+  [[L,0],[L,0],[L,L]].forEach((row,r)=>row.forEach((col,c)=>{
     if(!col)return;
-    const nx=SX+SW/2-10+c*13, ny=OY+142+r*13;
-    ctx.fillStyle=col; ctx.fillRect(nx,ny,11,11);
-    ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.fillRect(nx+1,ny+1,9,3);
+    const nx=SX+SW/2-11+c*11, ny=OY+110+r*11;
+    ctx.fillStyle=col; ctx.fillRect(nx,ny,9,9);
+    ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(nx+1,ny+1,7,2);
   }));
 })();
 </script>
