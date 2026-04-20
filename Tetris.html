@@ -193,6 +193,7 @@ canvas#board{ display:block; }
     height:100vh;
     height:100dvh;
     overflow:hidden;
+    touch-action:none;
   }
   #app{
     flex-direction:column;
@@ -215,13 +216,19 @@ canvas#board{ display:block; }
     align-items:flex-start;
     justify-content:center;
     width:100vw;
-    overflow:hidden;
   }
   #board-wrap{
     border:none;
     flex:0 0 auto;
+    position:relative;
   }
-  #mobile-next-box{display:flex;flex:0 0 58px;}
+  #mobile-next-box{
+    display:flex;
+    flex:0 0 58px;
+    position:absolute;
+    left:100%;
+    top:0;
+  }
   .key-sub{display:none;}
   #tet-mobile{display:flex;}
 }</style>
@@ -247,6 +254,11 @@ canvas#board{ display:block; }
     <div id="mobile-game-area">
     <div id="board-wrap">
       <canvas id="board" width="200" height="400"></canvas>
+      <!-- 手機版 NEXT 預覽（絕對定位在 canvas 右側）-->
+      <div id="mobile-next-box">
+        <div class="mh-l">NEXT</div>
+        <canvas id="mobile-next-cv" width="48" height="48"></canvas>
+      </div>
       <div id="overlay">
         <h1>TETRIS</h1>
         <div class="sub key-sub">
@@ -260,11 +272,6 @@ canvas#board{ display:block; }
         <button class="gbtn" id="start-btn">▶ GAME START</button>
         <div class="sub key-sub" style="font-size:6px;color:#555;margin-top:-6px">或按任意鍵開始</div>
       </div>
-    </div>
-    <!-- 手機版 NEXT 預覽 -->
-    <div id="mobile-next-box">
-      <div class="mh-l">NEXT</div>
-      <canvas id="mobile-next-cv" width="48" height="48"></canvas>
     </div>
     </div>
   </div>
