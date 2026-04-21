@@ -517,6 +517,8 @@ document.addEventListener('keydown', e => {
 let touchX0, touchY0;
 const boardWrap = document.getElementById('board-wrap');
 boardWrap.addEventListener('touchstart', e => {
+  unlockAudio();
+  if (bgmPending) { bgm.start(); bgmPending = false; }
   touchX0 = e.touches[0].clientX;
   touchY0 = e.touches[0].clientY;
 }, {passive:true});
