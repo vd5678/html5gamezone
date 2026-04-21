@@ -252,6 +252,21 @@
     </div>
   </a>
 
+  <!-- Space Invaders -->
+  <a class="card" href="SpaceInvaders.html" style="--accent:#00ccff;--accent-glow:#00ccff22;">
+    <div class="thumb-wrap">
+      <canvas id="thumb-si" width="224" height="256"></canvas>
+      <div class="card-overlay"><span class="play-btn">▶ PLAY</span></div>
+    </div>
+    <div class="card-info">
+      <div class="card-title">SPACE INVADERS</div>
+      <div class="card-sub">外星人入侵 · 經典射擊<br>無限關卡 · 難度遞増</div>
+      <span class="card-tag">← → SPACE</span>
+      <span class="card-tag">TOUCH</span>
+      <span class="card-tag">P 暫停</span>
+    </div>
+  </a>
+
 </div>
 
 <footer>
@@ -767,6 +782,104 @@ try{(function(){
   ctx.textAlign = 'right';
   ctx.fillText('8192', BX+BW-8, BY+BH+29);
 })();}catch(e){console.warn('thumb-2048',e);}
+
+// ── Space Invaders thumbnail ──────────────────────────────
+try{(function(){
+  const cv = document.getElementById('thumb-si');
+  if (!cv) return;
+  const TW = 224, TH = 256;
+  const DPR = window.devicePixelRatio || 1;
+  cv.width  = TW * DPR; cv.height = TH * DPR;
+  const ctx = cv.getContext('2d');
+  ctx.scale(DPR, DPR);
+
+  // Background
+  ctx.fillStyle = '#000'; ctx.fillRect(0,0,TW,TH);
+
+  // Score bar
+  ctx.fillStyle = '#0a0a0a'; ctx.fillRect(2,2,TW-4,20);
+  ctx.strokeStyle = '#0cf4'; ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(2,22); ctx.lineTo(TW-2,22); ctx.stroke();
+  ctx.font = '5px "Press Start 2P",monospace';
+  ctx.fillStyle = '#0cf'; ctx.textAlign = 'left';  ctx.fillText('SCORE',   8, 12);
+  ctx.fillStyle = '#fff';                           ctx.fillText('0240',    8, 20);
+  ctx.fillStyle = '#0cf'; ctx.textAlign = 'center'; ctx.fillText('HI-SCORE',TW/2,12);
+  ctx.fillStyle = '#f55';                           ctx.fillText('9990',    TW/2,20);
+  ctx.fillStyle = '#0cf'; ctx.textAlign = 'right';  ctx.fillText('LEVEL',   TW-8,12);
+  ctx.fillStyle = '#fff';                           ctx.fillText('1',        TW-8,20);
+
+  // Game area maps game coords (308×380) to thumbnail play area (220×210)
+  const GAX = 2, GAY = 23;
+  const SX = 220/308, SY = 208/380;
+
+  const ART = {
+    squid:[0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,1,0,1,1,0,1,1,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,1,0,1,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0],
+    crab: [0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,1,1,0,1,1,1,0,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,1,0,1,1,0,0,0,0],
+    octopus:[0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,1,1,0,1,1,0,1,1,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,1,0,1,1,0,1,0,0,0,0,0,1,0,1,0,0,1,0,1,0,0],
+  };
+
+  function drawAlien(type, color, gx, gy) {
+    const art = ART[type];
+    const px = Math.max(1, Math.round(2*SX));
+    ctx.fillStyle = color;
+    for (let i=0;i<8;i++) for(let j=0;j<12;j++)
+      if (art[i*12+j]) ctx.fillRect(GAX+gx*SX+j*px, GAY+gy*SY+i*px, px, px);
+  }
+
+  // Draw 11×5 alien grid matching game constants
+  const AL=13, AT=36, CW2=26, CH2=24;
+  for (let r=0;r<5;r++) {
+    const [type,color] = r===0 ? ['squid','#fff'] : r<=2 ? ['crab','#0cf'] : ['octopus','#0f0'];
+    for (let c=0;c<11;c++) drawAlien(type, color, AL+c*CW2, AT+r*CH2);
+  }
+
+  // UFO (top-left area)
+  const ux=GAX+55*SX, uy=GAY+10*SY, uw=40*SX, uh=13*SY;
+  ctx.fillStyle='#f55'; ctx.shadowColor='#f55'; ctx.shadowBlur=4;
+  ctx.beginPath(); ctx.ellipse(ux+uw/2,uy+uh*0.6,uw/2,uh*0.42,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#f99'; ctx.shadowBlur=0;
+  ctx.beginPath(); ctx.ellipse(ux+uw/2,uy+uh*0.28,uw/3,uh*0.32,0,Math.PI,0); ctx.fill();
+
+  // Shields (simplified solid blocks, 4 shields, with arch cutout)
+  const SHY=289, SHW=54, SHH=39;
+  [18,90,162,234].forEach(sx2 => {
+    ctx.fillStyle='#0f0';
+    const tx=GAX+sx2*SX, ty=GAY+SHY*SY, tw=SHW*SX, th=SHH*SY;
+    ctx.fillRect(tx, ty, tw, th*0.62);                        // top solid
+    ctx.fillRect(tx, ty+th*0.62, tw*0.2, th*0.38);           // left leg
+    ctx.fillRect(tx+tw*0.8, ty+th*0.62, tw*0.2, th*0.38);    // right leg
+  });
+
+  // Player
+  const PY=344, PLX=138, PLW=32, PLH=14;
+  const tx=GAX+PLX*SX, ty=GAY+PY*SY, tw=PLW*SX, th=PLH*SY;
+  ctx.fillStyle='#fff';
+  ctx.fillRect(tx+2*SX, ty+6*SY, tw-4*SX, th-6*SY);
+  ctx.fillRect(tx+11*SX, ty, 10*SX, 8*SY);
+  ctx.fillRect(tx, ty+10*SY, 8*SX, 4*SY);
+  ctx.fillRect(tx+(PLW-8)*SX, ty+10*SY, 8*SX, 4*SY);
+
+  // Ground line
+  ctx.strokeStyle='#fff'; ctx.lineWidth=0.5;
+  ctx.beginPath(); ctx.moveTo(GAX+4,GAY+360*SY); ctx.lineTo(GAX+216,GAY+360*SY); ctx.stroke();
+
+  // Bottom bar
+  ctx.fillStyle='#0a0a0a'; ctx.fillRect(2,TH-20,TW-4,18);
+  ctx.strokeStyle='#0cf4';
+  ctx.beginPath(); ctx.moveTo(2,TH-20); ctx.lineTo(TW-2,TH-20); ctx.stroke();
+  ctx.font='5px "Press Start 2P",monospace';
+  ctx.fillStyle='#0cf'; ctx.textAlign='left'; ctx.shadowColor='#0cf'; ctx.shadowBlur=4;
+  ctx.fillText('LIVES', 8, TH-7);
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#0cf';
+  for (let i=0;i<3;i++) {
+    const lx=48+i*18, ly=TH-18;
+    ctx.fillRect(lx+2,ly+4,10,5); ctx.fillRect(lx+5,ly,4,5);
+    ctx.fillRect(lx,ly+7,5,3); ctx.fillRect(lx+9,ly+7,5,3);
+  }
+
+})();}catch(e){console.warn('thumb-si',e);}
+
 }); // document.fonts.ready
 </script>
 </body>

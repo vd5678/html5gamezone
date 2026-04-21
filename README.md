@@ -14,6 +14,7 @@
 | 病菌剋星 Dr. Pill | [Play](https://vd5678.github.io/html5gamezone/DrPill.html)   | ← → 移動，↑ 旋轉，↓ 加速，SPACE 直落，20 關 |
 | 泡泡龍 Puzzle Bobble | [Play](https://vd5678.github.io/html5gamezone/PuzzleBobble.html) | 滑鼠移動瞄準，點擊發射，← → 鍵微調；手機：拖曳瞄準，放開發射 |
 | 2048 | [Play](https://vd5678.github.io/html5gamezone/2048.html) | ← → ↑ ↓ 滑動合併；手機：滑動操作；Z 鍵或 UNDO 按鈕悔棋 |
+| 太空侵略者 Space Invaders | [Play](https://vd5678.github.io/html5gamezone/SpaceInvaders.html) | ← → 移動，SPACE 連發；P 暫停，ESC 返回；手機：觸控按鈕，點畫面暫停 |
 
 ## 功能特色
 
@@ -33,4 +34,5 @@ Copyright (c) 2026 Victor H.S. Liu
 - 快打磚塊（Arkanoid）遊戲設計參考自 TAITO 1986 年原版，本作為非商業個人重製，版權歸原著作人所有。
 - 病菌剋星（Dr. Pill）遊戲設計參考自任天堂 Dr. Mario，本作為非商業個人重製，版權歸原著作人所有。
 - 2048 遊戲設計參考自 Gabriele Cirulli 原版（MIT License），本作為獨立重製實作。
+- 太空侵略者（Space Invaders）遊戲設計參考自 TAITO 1978 年原版，本作為非商業個人重製，版權歸原著作人所有。
 - 本程式碼為原創實作，未使用任何第三方遊戲引擎。
