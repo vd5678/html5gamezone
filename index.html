@@ -232,7 +232,7 @@
   <!-- 2048 -->
   <a class="card" href="2048.html" style="--accent:#edcf72;--accent-glow:#edcf7222;">
     <div class="thumb-wrap">
-      <canvas id="thumb-2048" width="224" height="256"></canvas>
+      <canvas id="thumb-2048"></canvas>
       <div class="card-overlay"><span class="play-btn">▶ PLAY</span></div>
     </div>
     <div class="card-info">
@@ -677,8 +677,14 @@ try{(function(){
 try{(function(){
   const cv = document.getElementById('thumb-2048');
   if (!cv) return;
-  const ctx = cv.getContext('2d');
   const W = 224, H = 256;
+  const DPR = window.devicePixelRatio || 1;
+  cv.width  = W * DPR;
+  cv.height = H * DPR;
+  cv.style.width  = W + 'px';
+  cv.style.height = H + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(DPR, DPR);
 
   // Background
   ctx.fillStyle = '#2a2420'; ctx.fillRect(0,0,W,H);
