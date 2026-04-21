@@ -15,6 +15,9 @@
       align-items:center; justify-content:center; min-height:100vh;
       font-family:'Press Start 2P','Courier New',monospace;
     }
+    #game-container {
+      display:flex; flex-direction:column; align-items:center;
+    }
     #hud {
       display:flex; justify-content:space-between; align-items:center;
       width:300px; background:#111; padding:5px 10px; font-size:8px; color:#ccc;
@@ -22,27 +25,42 @@
       white-space:nowrap; height:30px;
     }
     #game-wrapper { position:relative; border:2px solid #333; line-height:0; }
-    canvas { display:block; image-rendering:pixelated; cursor:crosshair; }
+    canvas { display:block; cursor:crosshair; }
+
+    /* ── Mobile: scale up to fill screen ── */
     @media (max-width:600px) {
-      body { justify-content:flex-start; padding-top:8px; }
+      body { justify-content:flex-start; padding-top:0; }
+      #game-container {
+        /* scale the whole container so total height fits viewport */
+        transform-origin: top center;
+        /* actual scaling calculated by JS; fallback below */
+      }
     }
   </style>
 </head>
 <body>
 <div style="position:absolute;visibility:hidden;font-family:'Press Start 2P';font-size:4px">.</div>
+<div id="game-container">
 <div id="hud">
   <span>LV <span id="h-lv">1</span></span>
   <span>SCORE: <span id="h-score">0</span></span>
   <span>❤ <span id="h-lives">3</span></span>
 </div>
 <div id="game-wrapper">
-  <canvas id="canvas" width="300" height="480"></canvas>
+  <canvas id="canvas" style="width:300px;height:480px;"></canvas>
+</div>
 </div>
 <script>
 'use strict';
 const canvas = document.getElementById('canvas');
 const ctx    = canvas.getContext('2d');
 const W = 300, H = 480;
+
+// ── HiDPI / Retina support ────────────────────
+const DPR = Math.min(window.devicePixelRatio || 1, 3); // cap at 3× to save memory
+canvas.width  = Math.round(W * DPR);
+canvas.height = Math.round(H * DPR);
+ctx.scale(DPR, DPR);
 
 // ── Grid constants ────────────────────────────
 const WALL_L = 10, WALL_R = 290;    // wall inner edges
@@ -371,7 +389,7 @@ function placeBullet(bx, by, bColor) {
   grid[sr][sc] = bColor;
   sfx.snap();
 
-  if (sr >= DANGER_ROW) { loseLife(); return; }
+  if (sr >= DANGER_ROW) { grid[sr][sc] = null; loseLife(); return; }
 
   const matched = findMatch(sr, sc);
   if (matched.length >= 3) {
@@ -391,6 +409,8 @@ function placeBullet(bx, by, bColor) {
         score += 20 * lv;
         grid[r][c] = null;
       });
+      flashMsg = 'DROP x' + floating.length + '!';
+      flashTimer = 1400;
     }
     updateHUD();
     if (isGridEmpty()) { sfx.clear(); STATE='clear'; transTimer=2000; return; }
@@ -417,15 +437,22 @@ function shoot() {
   sfx.shoot();
 }
 
-// ── Aim ──────────────────────────────────────────────────
+// ── Aim limits (upward cone only) ───────────────────────
+const ANGLE_MIN = -(Math.PI - 0.25);  // ≈ −2.89 rad, upper-left dead stop
+const ANGLE_MAX = -0.25;              // ≈ −0.25 rad, upper-right dead stop
+function clampAngle(a) { return Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, a)); }
+
+let kbInput = false;   // true briefly after arrow key; suppresses mousemove
+let kbTimer = 0;
+
 function setAim(mx, my) {
   if (STATE !== 'playing') return;
+  if (kbInput) return;                // keyboard has priority
   let a = Math.atan2(my - CANNON_Y, mx - CANNON_X);
-  // Only allow upward shots (vy < -0.2), clamp near-vertical
-  if (Math.sin(a) > -0.2) {
-    a = mx < CANNON_X ? -Math.PI + 0.2 : -0.2;
+  if (Math.sin(a) > Math.sin(ANGLE_MAX)) {
+    a = mx < CANNON_X ? ANGLE_MIN : ANGLE_MAX;
   }
-  cannonAngle = a;
+  cannonAngle = clampAngle(a);
 }
 
 // ── HUD ──────────────────────────────────────────────────
@@ -488,6 +515,8 @@ function update(dt) {
     d.life -= dt * 0.002;
     if (d.life <= 0 || d.y > H + 30) drops.splice(i,1);
   }
+  if (flashTimer > 0) flashTimer -= dt;
+  if (kbTimer  > 0) { kbTimer -= dt; if (kbTimer <= 0) kbInput = false; }
 
   if (STATE === 'dead') {
     transTimer -= dt;
@@ -725,8 +754,29 @@ function draw() {
     ctx.fillText('SCORE: ' + score, W/2, H/2 + 18);
   }
   if (STATE === 'dead') {
-    ctx.fillStyle = 'rgba(200,40,40,0.3)';
+    const t = Math.max(0, transTimer / 1500);
+    ctx.fillStyle = `rgba(0,0,0,${(0.65 * t).toFixed(2)})`;
     ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = t;
+    ctx.fillStyle = '#ff4040';
+    ctx.shadowColor = '#ff0000'; ctx.shadowBlur = 22;
+    ctx.textAlign = 'center';
+    ctx.font = '18px "Press Start 2P",monospace';
+    ctx.fillText('MISS!', W/2, H/2);
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
+  // Flash message (chain drop, etc.)
+  if (flashMsg && flashTimer > 0) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, flashTimer / 500);
+    ctx.fillStyle = '#ffe040';
+    ctx.shadowColor = '#ffcc00'; ctx.shadowBlur = 10;
+    ctx.textAlign = 'center';
+    ctx.font = '8px "Press Start 2P",monospace';
+    ctx.fillText(flashMsg, W/2, CANNON_Y - 40);
+    ctx.shadowBlur = 0;
+    ctx.restore();
   }
 }
 
@@ -753,8 +803,13 @@ function drawTitleScreen() {
   }
   ctx.fillStyle = '#888';
   ctx.font = '6px "Press Start 2P",monospace';
-  ctx.fillText('MOUSE — AIM    CLICK / SPC — FIRE', W/2, 300);
-  ctx.fillText('← → KEYS — FINE ADJUST', W/2, 318);
+  if (window.innerWidth <= 600) {
+    ctx.fillText('TOUCH & DRAG — AIM', W/2, 296);
+    ctx.fillText('RELEASE — FIRE', W/2, 314);
+  } else {
+    ctx.fillText('MOUSE — AIM    CLICK / SPC — FIRE', W/2, 300);
+    ctx.fillText('← → KEYS — FINE ADJUST', W/2, 318);
+  }
   ctx.textAlign = 'start';
 }
 
@@ -838,14 +893,45 @@ document.addEventListener('keydown', e => {
       break;
     case 'ArrowLeft':
       e.preventDefault();
-      if (STATE==='playing') { cannonAngle = Math.max(-Math.PI+0.2, cannonAngle - 0.06); }
+      if (STATE==='playing') {
+        cannonAngle = clampAngle(cannonAngle - 0.06);
+        kbInput = true; kbTimer = 600;
+      }
       break;
     case 'ArrowRight':
       e.preventDefault();
-      if (STATE==='playing') { cannonAngle = Math.min(-0.2, cannonAngle + 0.06); }
+      if (STATE==='playing') {
+        cannonAngle = clampAngle(cannonAngle + 0.06);
+        kbInput = true; kbTimer = 600;
+      }
       break;
   }
 });
+
+// ── Mobile scaling ────────────────────────────────────────
+(function scaleGame() {
+  const GAME_W = 304;   // 300px canvas + 2px border × 2
+  const GAME_H = 514;   // 30px HUD + 2px HUD border-top/sides + 480px canvas + 2px canvas border × 2
+  const container = document.getElementById('game-container');
+  function resize() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    // Only scale on narrow screens; desktop stays at 1×
+    if (vw >= 600) {
+      container.style.transform = '';
+      container.style.marginTop = '';
+      return;
+    }
+    const scale = Math.min(vw / GAME_W, vh / GAME_H);
+    container.style.transformOrigin = 'top center';
+    container.style.transform = `scale(${scale.toFixed(4)})`;
+    // Push body so scaled container sits at top without gap
+    container.style.marginTop = `${Math.max(0, (vh - GAME_H * scale) / 2).toFixed(1)}px`;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+})();
 
 // ── Boot ──────────────────────────────────────────────────
 STATE = 'title';
