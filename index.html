@@ -229,6 +229,21 @@
     </div>
   </a>
 
+  <!-- 2048 -->
+  <a class="card" href="2048.html" style="--accent:#edcf72;--accent-glow:#edcf7222;">
+    <div class="thumb-wrap">
+      <canvas id="thumb-2048" width="224" height="256"></canvas>
+      <div class="card-overlay"><span class="play-btn">▶ PLAY</span></div>
+    </div>
+    <div class="card-info">
+      <div class="card-title">2048</div>
+      <div class="card-sub">滑動合併 · 2的冪次<br>擱棋功能 · 最高分記録</div>
+      <span class="card-tag">← → ↑ ↓</span>
+      <span class="card-tag">SWIPE</span>
+      <span class="card-tag">UNDO</span>
+    </div>
+  </a>
+
 </div>
 
 <footer>
@@ -659,6 +674,87 @@ try{(function(){
   ctx.stroke();
   ctx.restore();
 })();}catch(e){console.warn('thumb-pb',e);}
+try{(function(){
+  const cv = document.getElementById('thumb-2048');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = 224, H = 256;
+
+  // Background
+  ctx.fillStyle = '#2a2420'; ctx.fillRect(0,0,W,H);
+
+  // Title
+  ctx.fillStyle = '#edcf72';
+  ctx.shadowColor = '#edcf72'; ctx.shadowBlur = 10;
+  ctx.font = 'bold 20px "Press Start 2P",monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('2048', W/2, 34);
+  ctx.shadowBlur = 0;
+
+  // Board
+  const BX = 12, BY = 50, BW = W-24, BH = W-24;
+  const GAP = 6, COLS = 4;
+  const CS = (BW - GAP*(COLS+1)) / COLS; // cell size ~41px
+
+  ctx.fillStyle = '#bbada0';
+  ctx.beginPath(); ctx.roundRect(BX, BY, BW, BH, 6); ctx.fill();
+
+  const TILE_COL = {
+    0:    {bg:'#cdc1b4', fg:null},
+    2:    {bg:'#eee4da', fg:'#776e65'},
+    4:    {bg:'#ede0c8', fg:'#776e65'},
+    8:    {bg:'#f2b179', fg:'#f9f6f2'},
+    16:   {bg:'#f59563', fg:'#f9f6f2'},
+    32:   {bg:'#f67c5f', fg:'#f9f6f2'},
+    64:   {bg:'#f65e3b', fg:'#f9f6f2'},
+    128:  {bg:'#edcf72', fg:'#f9f6f2'},
+    256:  {bg:'#edcc61', fg:'#f9f6f2'},
+    512:  {bg:'#edc850', fg:'#f9f6f2'},
+    1024: {bg:'#edc53f', fg:'#f9f6f2'},
+    2048: {bg:'#edc22e', fg:'#f9f6f2'},
+  };
+
+  const layout = [
+    [8,    4,   2,  0],
+    [32,   16,  4,  2],
+    [128,  32,  8,  0],
+    [512, 128, 64, 16],
+  ];
+
+  for (let r=0; r<4; r++) {
+    for (let c=0; c<4; c++) {
+      const v = layout[r][c];
+      const x = BX + GAP + c*(CS+GAP);
+      const y = BY + GAP + r*(CS+GAP);
+      const st = TILE_COL[v] || TILE_COL[0];
+      ctx.fillStyle = st.bg;
+      ctx.beginPath(); ctx.roundRect(x, y, CS, CS, 3); ctx.fill();
+      if (v && st.fg) {
+        const fs = v < 100 ? 11 : v < 1000 ? 9 : 7;
+        ctx.fillStyle = st.fg;
+        ctx.font = `bold ${fs}px "Press Start 2P",monospace`;
+        ctx.textAlign = 'center';
+        ctx.fillText(String(v), x+CS/2, y+CS/2+fs*0.38);
+      }
+    }
+  }
+
+  // Score strip
+  ctx.fillStyle = '#bbada0';
+  ctx.fillRect(BX, BY+BH+8, BW, 28);
+  ctx.fillStyle = '#f9f6f2';
+  ctx.font = '7px "Press Start 2P",monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('SCORE', BX+8, BY+BH+17);
+  ctx.textAlign = 'right';
+  ctx.fillText('1024', BX+BW-8, BY+BH+17);
+  ctx.fillStyle = '#776e65';
+  ctx.font = '6px "Press Start 2P",monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('BEST', BX+8, BY+BH+29);
+  ctx.textAlign = 'right';
+  ctx.fillText('8192', BX+BW-8, BY+BH+29);
+})();}catch(e){console.warn('thumb-2048',e);}
 }); // document.fonts.ready
 </script>
 </body>
