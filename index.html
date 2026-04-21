@@ -268,6 +268,21 @@
     </div>
   </a>
 
+  <!-- Nexus Viper -->
+  <a class="card" href="NexusViper.html" style="--accent:#00ff88;--accent-glow:#00ff4422;">
+    <div class="thumb-wrap">
+      <canvas id="thumb-nv" width="224" height="256"></canvas>
+      <div class="card-overlay"><span class="play-btn">▶ PLAY</span></div>
+    </div>
+    <div class="card-info">
+      <div class="card-title">NEXUS VIPER</div>
+      <div class="card-sub">橫向捲軸射擊 · 武器升級<br>Boss 戰 · 無限火力</div>
+      <span class="card-tag">← → ↑ ↓ Z</span>
+      <span class="card-tag">TOUCH</span>
+      <span class="card-tag">P 暫停</span>
+    </div>
+  </a>
+
 </div>
 
 <footer>
@@ -880,6 +895,101 @@ try{(function(){
   }
 
 })();}catch(e){console.warn('thumb-si',e);}
+
+// ── Nexus Viper thumbnail ─────────────────────────────────
+try{(function(){
+  const cv=document.getElementById('thumb-nv');
+  if(!cv)return;
+  const TW=224,TH=256,DPR=window.devicePixelRatio||1;
+  cv.width=TW*DPR; cv.height=TH*DPR;
+  const ctx=cv.getContext('2d');
+  ctx.scale(DPR,DPR);
+
+  // BG
+  ctx.fillStyle='#000810'; ctx.fillRect(0,0,TW,TH);
+  // Stars
+  const rng=(s)=>{let x=s;return()=>{x=Math.sin(x*127.1+311.7)*43758.5453;return x-Math.floor(x);};};
+  const r=rng(42);
+  for(let i=0;i<60;i++){
+    const bri=Math.floor(80+r()*176);
+    ctx.fillStyle=`rgb(${bri},${bri},${bri})`;
+    ctx.fillRect(r()*TW,r()*TH*0.82,r()<0.3?2:1,1);
+  }
+
+  // Player ship
+  const px=28,py=TH/2-6;
+  ctx.fillStyle='#88ccff';
+  ctx.fillRect(px+6,py+4,14,4); ctx.fillRect(px+4,py+3,18,6);
+  ctx.fillStyle='#fff'; ctx.fillRect(px+20,py+5,4,2);
+  ctx.fillStyle='#0cf'; ctx.fillRect(px+12,py+4,6,4);
+  ctx.fillStyle='#ff8800'; ctx.fillRect(px,py+4,3,4);
+  ctx.fillStyle='#ffcc00'; ctx.fillRect(px-4,py+5,3,2);
+
+  // Laser beam
+  ctx.strokeStyle='#0ff'; ctx.lineWidth=2;
+  ctx.shadowColor='#0ff'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.moveTo(px+24,py+6); ctx.lineTo(TW-10,py+6); ctx.stroke();
+  ctx.shadowBlur=0;
+
+  // Option drone
+  ctx.fillStyle='#ff8c00';
+  ctx.shadowColor='#ffa500'; ctx.shadowBlur=6;
+  ctx.beginPath(); ctx.arc(px-16,py+6,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffcc00'; ctx.beginPath(); ctx.arc(px-16,py+6,3,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+
+  // Enemies
+  // dart
+  [[140,70],[160,100],[150,140],[170,160]].forEach(([ex,ey])=>{
+    ctx.fillStyle='#ff4444';
+    ctx.fillRect(ex,ey+2,12,6); ctx.fillRect(ex+2,ey,8,10);
+    ctx.fillStyle='#ff8888'; ctx.fillRect(ex+10,ey+4,3,2);
+  });
+  // Boss
+  const bx=TW-72,by=TH/2-40;
+  ctx.fillStyle='#334466';
+  ctx.fillRect(bx,by+10,60,60); ctx.fillRect(bx+8,by,44,80);
+  ctx.fillStyle='#223355'; ctx.fillRect(bx+2,by+12,12,56);
+  ctx.fillStyle='#112233'; ctx.fillRect(bx-8,by+18,12,8); ctx.fillRect(bx-8,by+54,12,8);
+  // Core glow
+  ctx.fillStyle='#ff8800'; ctx.shadowColor='#f80'; ctx.shadowBlur=12;
+  ctx.beginPath(); ctx.arc(bx+30,by+40,10,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  // Boss HP bar
+  ctx.fillStyle='#111'; ctx.fillRect(bx,by-8,60,4);
+  ctx.fillStyle='#f80'; ctx.fillRect(bx,by-8,35,4);
+
+  // Capsule
+  ctx.fillStyle='#ffcc00'; ctx.shadowColor='#ffcc00'; ctx.shadowBlur=6;
+  ctx.fillRect(90,TH/2+20,12,12);
+  ctx.fillStyle='#ff8800'; ctx.fillRect(92,TH/2+22,8,8);
+  ctx.shadowBlur=0;
+
+  // Power bar
+  const BY=TH-18;
+  ctx.fillStyle='rgba(0,0,20,0.9)'; ctx.fillRect(0,BY,TW,18);
+  ctx.strokeStyle='#0f44'; ctx.lineWidth=0.5;
+  ctx.beginPath(); ctx.moveTo(0,BY); ctx.lineTo(TW,BY); ctx.stroke();
+  const slots=['SPD','SPD','MSL','DBL','LASR','OPT','SHLD'];
+  const sw=Math.floor(TW/slots.length);
+  slots.forEach((s,i)=>{
+    ctx.font='4px "Press Start 2P",monospace';
+    ctx.textAlign='center';
+    ctx.fillStyle=i===4?'#0ff':'#334';
+    if(i===4){ctx.fillStyle='rgba(0,200,255,0.2)'; ctx.fillRect(i*sw+1,BY+1,sw-2,16);}
+    ctx.fillStyle=i===4?'#0ff':'#445577';
+    ctx.fillText(s,i*sw+sw/2,BY+11);
+    if(i===4){ctx.strokeStyle='#0cf';ctx.lineWidth=0.8;ctx.strokeRect(i*sw+1,BY+1,sw-2,15);}
+  });
+
+  // Score bar top
+  ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(0,0,TW,14);
+  ctx.font='5px "Press Start 2P",monospace'; ctx.fillStyle='#0f8';
+  ctx.textAlign='left'; ctx.fillText('SCORE',4,10);
+  ctx.fillStyle='#fff'; ctx.fillText('012800',50,10);
+  ctx.fillStyle='#0f8'; ctx.textAlign='right'; ctx.fillText('STG 1',TW-4,10);
+
+})();}catch(e){console.warn('thumb-nv',e);}
 
 }); // document.fonts.ready
 </script>

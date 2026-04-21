@@ -15,6 +15,7 @@
 | 泡泡龍 Puzzle Bobble | [Play](https://vd5678.github.io/html5gamezone/PuzzleBobble.html) | 滑鼠移動瞄準，點擊發射，← → 鍵微調；手機：拖曳瞄準，放開發射 |
 | 2048 | [Play](https://vd5678.github.io/html5gamezone/2048.html) | ← → ↑ ↓ 滑動合併；手機：滑動操作；Z 鍵或 UNDO 按鈕悔棋 |
 | 太空侵略者 Space Invaders | [Play](https://vd5678.github.io/html5gamezone/SpaceInvaders.html) | ← → 移動，SPACE 連發；P 暫停，ESC 返回；手機：觸控按鈕，點畫面暫停 |
+| Nexus Viper | [Play](https://vd5678.github.io/html5gamezone/NexusViper.html) | ← → ↑ ↓ 移動，Z/SPACE 射擊，X 選擇升級；P 暫停，ESC 返回；手機：觸控按鈕 |
 
 ## 功能特色
 
