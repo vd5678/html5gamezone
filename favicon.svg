@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges">
+  <!-- NES controller top-down, simplified -->
+  <rect width="16" height="16" fill="#000"/>
+  <!-- body -->
+  <rect x="1"  y="5"  width="14" height="8"  fill="#cc3333"/>
+  <rect x="2"  y="4"  width="12" height="1"  fill="#cc3333"/>
+  <!-- highlight -->
+  <rect x="2"  y="4"  width="12" height="2"  fill="#ee5555"/>
+  <!-- D-pad -->
+  <rect x="3"  y="7"  width="1"  height="4"  fill="#222"/>
+  <rect x="2"  y="8"  width="3"  height="2"  fill="#222"/>
+  <!-- center circle -->
+  <rect x="7"  y="8"  width="2"  height="2"  fill="#aa2222"/>
+  <!-- A button -->
+  <rect x="11" y="7"  width="3"  height="3"  fill="#ffee00"/>
+  <!-- B button -->
+  <rect x="9"  y="9"  width="2"  height="2"  fill="#ffee00"/>
+  <!-- select/start -->
+  <rect x="6"  y="10" width="2"  height="1"  fill="#882222"/>
+</svg>
