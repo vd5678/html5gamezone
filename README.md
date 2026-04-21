@@ -12,7 +12,7 @@
 | 貪食蛇 Snake      | [Play](https://vd5678.github.io/html5gamezone/Snake.html)    | ← → ↑ ↓ 控制方向，ENTER／SPACE 開始暫停 |
 | 俄羅斯方塊 Tetris | [Play](https://vd5678.github.io/html5gamezone/Tetris.html)   | ← → 移動，↑ 旋轉，↓ 加速，SPACE 直落 |
 | 病菌剋星 Dr. Pill | [Play](https://vd5678.github.io/html5gamezone/DrPill.html)   | ← → 移動，↑ 旋轉，↓ 加速，SPACE 直落，20 關 |
-| 泡泡龍 Puzzle Bobble | [Play](https://vd5678.github.io/html5gamezone/PuzzleBobble.html) | 滑鼠移動瞄準，點擊發射，← → 鍵微調角度 |
+| 泡泡龍 Puzzle Bobble | [Play](https://vd5678.github.io/html5gamezone/PuzzleBobble.html) | 滑鼠移動瞄準，點擊發射，← → 鍵微調；手機：拖曳瞄準，放開發射 |
 
 ## 功能特色
 
