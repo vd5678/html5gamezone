@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TAMAGOTCHI</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:#1a1a2e;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  font-family:'Press Start 2P',monospace;
+  user-select:none;
+  touch-action:none;
+}
+
+/* ── 外殼 ── */
+#shell{
+  position:relative;
+  width:240px;
+  background:#e8c84a;
+  border-radius:50% 50% 45% 45% / 40% 40% 50% 50%;
+  padding:24px 20px 36px;
+  box-shadow:
+    0 0 0 4px #b89a28,
+    0 8px 0 4px #8a7018,
+    0 12px 24px rgba(0,0,0,0.6);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+}
+
+/* ── LCD 螢幕框 ── */
+#screen-frame{
+  width:180px;
+  height:160px;
+  background:#2a2a1a;
+  border-radius:12px;
+  border:4px solid #8a7018;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.7), 0 2px 4px rgba(255,220,80,0.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+#screen{
+  width:160px;
+  height:140px;
+  background:#9db874;
+  image-rendering:pixelated;
+  display:block;
+}
+
+/* ── 狀態 icon 列 ── */
+#status-bar{
+  display:flex;
+  gap:6px;
+  width:180px;
+  justify-content:center;
+}
+.status-icon{
+  font-size:6px;
+  color:#5a4010;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+}
+.hearts{
+  display:flex;
+  gap:1px;
+}
+.heart{
+  width:8px;
+  height:8px;
+  background:#c0392b;
+  clip-path:polygon(50% 90%, 0% 35%, 15% 0%, 50% 20%, 85% 0%, 100% 35%);
+}
+.heart.empty{
+  background:#5a4010;
+  opacity:0.4;
+}
+
+/* ── 按鈕列 ── */
+#btn-row{
+  display:flex;
+  gap:20px;
+  align-items:center;
+}
+.btn{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  border:none;
+  cursor:pointer;
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;
+  color:#fff;
+  box-shadow:0 4px 0 rgba(0,0,0,0.4), 0 6px 12px rgba(0,0,0,0.3);
+  transition:transform 0.08s, box-shadow 0.08s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.btn:active{
+  transform:translateY(3px);
+  box-shadow:0 1px 0 rgba(0,0,0,0.4);
+}
+#btn-a{ background:#c0392b; }
+#btn-b{ background:#2980b9; width:44px; height:44px; font-size:8px; }
+#btn-c{ background:#27ae60; }
+
+/* ── 選單 icon 行 ── */
+#menu-icons{
+  display:flex;
+  gap:4px;
+  width:180px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.menu-icon{
+  width:24px;
+  height:24px;
+  border-radius:4px;
+  background:#b89a28;
+  border:2px solid #8a7018;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  cursor:pointer;
+  transition:background 0.1s;
+  position:relative;
+}
+.menu-icon.selected{
+  background:#fff;
+  border-color:#c0392b;
+}
+.menu-icon.selected::after{
+  content:'';
+  position:absolute;
+  bottom:-6px;
+  left:50%;
+  transform:translateX(-50%);
+  border:4px solid transparent;
+  border-top-color:#c0392b;
+}
+
+/* ── 燈號 ── */
+#alert-light{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#555;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,0.5);
+  transition:background 0.2s;
+}
+#alert-light.on{ background:#ff4444; box-shadow:0 0 8px #ff4444; }
+
+/* ── 音量/快速模式列 ── */
+#bottom-row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.small-btn{
+  font-size:6px;
+  padding:3px 6px;
+  background:#b89a28;
+  border:2px solid #8a7018;
+  border-radius:4px;
+  color:#3a2a00;
+  cursor:pointer;
+  font-family:'Press Start 2P',monospace;
+}
+.small-btn.active{ background:#c0392b; color:#fff; border-color:#900; }
+</style>
+</head>
+<body>
+
+<div id="shell">
+
+  <!-- 警示燈 -->
+  <div style="display:flex;width:180px;justify-content:flex-end;">
+    <div id="alert-light"></div>
+  </div>
+
+  <!-- 螢幕 -->
+  <div id="screen-frame">
+    <canvas id="screen" width="160" height="140"></canvas>
+  </div>
+
+  <!-- 狀態列（飢餓/快樂） -->
+  <div id="status-bar">
+    <div class="status-icon">
+      <span>🍖</span>
+      <div class="hearts" id="hunger-hearts"></div>
+    </div>
+    <div class="status-icon" style="margin:0 8px;">
+      <div id="alert-light-2" style="display:none"></div>
+    </div>
+    <div class="status-icon">
+      <span>😊</span>
+      <div class="hearts" id="happy-hearts"></div>
+    </div>
+  </div>
+
+  <!-- 選單 icons -->
+  <div id="menu-icons">
+    <div class="menu-icon" data-menu="food"    title="餵食">🍙</div>
+    <div class="menu-icon" data-menu="light"   title="燈光">💡</div>
+    <div class="menu-icon" data-menu="play"    title="遊玩">🎮</div>
+    <div class="menu-icon" data-menu="medicine"title="藥">💊</div>
+    <div class="menu-icon" data-menu="toilet"  title="打掃">🚽</div>
+    <div class="menu-icon" data-menu="status"  title="狀態">📊</div>
+    <div class="menu-icon" data-menu="discipline" title="紀律">📣</div>
+    <div class="menu-icon" data-menu="attention"  title="注意">❤️</div>
+  </div>
+
+  <!-- 三顆按鈕 -->
+  <div id="btn-row">
+    <button class="btn" id="btn-a">A</button>
+    <button class="btn" id="btn-b">B</button>
+    <button class="btn" id="btn-c">C</button>
+  </div>
+
+  <!-- 底列 -->
+  <div id="bottom-row">
+    <button class="small-btn" id="btn-mute">🔇</button>
+    <button class="small-btn" id="btn-fast">x60</button>
+    <button class="small-btn" id="btn-reset" style="color:#900;">RESET</button>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+// ════════════════════════════════════════════════════════
+//  TAMAGOTCHI  —  HTML5 Edition
+//  真實時間 + 夜間保護 + 離線緩衝
+// ════════════════════════════════════════════════════════
+
+const cv  = document.getElementById('screen');
+const ctx = cv.getContext('2d');
+const W = 160, H = 140;
+
+// ── 時間常數 ──────────────────────────────────────────
+// 預設真實時間。FAST_MODE=true 時 x60 加速
+let FAST_MODE = false;
+const TICK_MS      = 1000;        // 每秒 tick 一次
+const MINS_PER_TICK_REAL  = 1/60; // 真實：1 tick = 1 秒 = 1/60 分
+const MINS_PER_TICK_FAST  = 1;    // 快速：1 tick = 1 分鐘（x60)
+function minsPerTick(){ return FAST_MODE ? MINS_PER_TICK_FAST : MINS_PER_TICK_REAL; }
+
+// 飢餓/快樂衰減：每 4 小時扣一格（240 分鐘）
+const HUNGER_DECAY_MINS = 240;
+const HAPPY_DECAY_MINS  = 240;
+
+// 夜間保護：23:00 - 7:00 寵物睡覺，不衰減
+const SLEEP_HOUR_START = 23;
+const SLEEP_HOUR_END   = 7;
+
+// 離線緩衝：離線 > 8 小時才開始算傷害
+const OFFLINE_GRACE_MS = 8 * 60 * 60 * 1000;
+
+// ── 年齡/成長階段 ─────────────────────────────────────
+const STAGES = ['egg','baby','child','teen','adult','senior','dead','angel'];
+// 各階段所需「歲數」（1 歲 = 24 小時遊戲時間）
+const STAGE_AGE = { egg:0, baby:1, child:3, teen:6, adult:10, senior:16, dead:999 };
+
+// 進化判定：照顧不良(care miss >= 閾値)→劣等進化路線
+const CARE_MISS_THRESHOLD = 3;
+
+// ── 進化樹 ─────────────────────────────────────────────
+// baby -> child -> teen -> adult -> senior
+// good / bad 兩條路線
+const EVOLUTION = {
+  baby:  { good:'child_g', bad:'child_b' },
+  child_g: { good:'teen_g',  bad:'teen_b'  },
+  child_b: { good:'teen_b',  bad:'teen_b'  },
+  teen_g:  { good:'adult_g', bad:'adult_b' },
+  teen_b:  { good:'adult_b', bad:'adult_b' },
+  adult_g: { good:'senior_g',bad:'senior_b'},
+  adult_b: { good:'senior_b',bad:'senior_b'},
+};
+
+// ── 遊戲狀態 ──────────────────────────────────────────
+let pet = null;  // 主要物件，存入 localStorage
+
+function defaultPet(){
+  return {
+    stage: 'egg',
+    ageMinutes: 0,       // 總分鐘累積
+    hunger: 4,           // 0~4，0=滿，4=餓死
+    happy: 4,            // 0~4，4=最快樂
+    weight: 5,
+    discipline: 0,       // 0~4
+    sick: false,
+    poop: 0,             // 便便數 0~3
+    light: true,         // 燈光（睡覺中為 false）
+    sleeping: false,
+    careMiss: 0,         // 本階段照顧失誤次數
+    hungerMinsAcc: 0,    // 飢餓衰減累積分鐘
+    happyMinsAcc: 0,     // 快樂衰減累積分鐘
+    callAttention: false,// 是否在呼叫注意
+    lastTs: Date.now(),
+    born: Date.now(),
+    variant: 'good',     // 當前進化方向
+    dead: false,
+    angel: false,
+    fastMode: false,
+  };
+}
+
+function savePet(){ try{ localStorage.setItem('tamagotchi', JSON.stringify(pet)); }catch(e){} }
+function loadPet(){
+  try{
+    const d = localStorage.getItem('tamagotchi');
+    if(d){ pet = JSON.parse(d); return true; }
+  }catch(e){}
+  return false;
+}
+
+// ── 選單狀態 ──────────────────────────────────────────
+const MENUS = ['food','light','play','medicine','toilet','status','discipline','attention'];
+let menuIdx = 0;
+let menuOpen = false;   // B 鍵確認
+let subMenuIdx = 0;     // 次選單（餵食：0=正餐 1=零食；遊玩中的猜拳選擇）
+
+// 遊玩小遊戲狀態
+let playState = null;  // null | { phase, playerChoice, cpuChoice, result, timer }
+
+// 狀態畫面
+let showStatus = false;
+
+// ── 動畫 ──────────────────────────────────────────────
+let animFrame = 0;  // 每 tick +1，用於動畫幀切換
+let blinkOn = true;
+let blinkTimer = 0;
+
+// ── 像素精靈 ──────────────────────────────────────────
+// 每個精靈為 16x16 像素陣列，0=透明，1=深，2=中，3=淡
+const PAL = ['transparent','#2c3e50','#7f8c8d','#bdc3c9'];
+
+// 把 5bit encoded 字串解碼為 16x16 bitmap（每個 char 為 0-3）
+function spr(rows){ return rows; }
+
+// ── 各階段精靈定義（16×16，用字串 rows 表示）──
+const SPRITES = {
+
+  egg: [
+    '0000001111100000',
+    '0000110000011000',
+    '0001100000001100',
+    '0011000111000110',
+    '0110010111100011',
+    '0110001011000011',
+    '1100000000000001',
+    '1100000000000001',
+    '1100000000000001',
+    '1100000000000001',
+    '0110000000000011',
+    '0110000000000011',
+    '0011000000000110',
+    '0001100000001100',
+    '0000110000011000',
+    '0000001111100000',
+  ],
+
+  baby: [
+    '0000011111100000', // 頭
+    '0000111111110000',
+    '0001111221111000',
+    '0011112222111100',
+    '0011121111211100',
+    '0001111111111000',
+    '0000011111100000',
+    '0000001111000000',
+    '0000011011000000', // 身體 + 手
+    '0001110111110000',
+    '0000011111100000',
+    '0000001111000000',
+    '0000001111000000',
+    '0000011011000000', // 腳
+    '0000011011000000',
+    '0000000000000000',
+  ],
+
+  child_g: [  // 健康小孩：圓滾滾
+    '0000011111100000',
+    '0000111111110000',
+    '0001121221111000',
+    '0011122222211100',
+    '0011211111121100',
+    '0001111111111000',
+    '0000011111100000',
+    '0001111111110000',
+    '0011111111111100',
+    '0011111001111100',
+    '0011100000011100',
+    '0001100000001100',
+    '0000110000001000',
+    '0001110000011100',
+    '0001110000011100',
+    '0000000000000000',
+  ],
+
+  child_b: [  // 懶散小孩：歪頭
+    '0000001111100000',
+    '0000011111110000',
+    '0000111211111000',
+    '0001112222211000',
+    '0001121111121000',
+    '0000111111110000',
+    '0000001111100000',
+    '0001111111111000',
+    '0011111111111100',
+    '0011111001111100',
+    '0011100000011100',
+    '0001110000001100',
+    '0000110000011000',
+    '0001110000011000',
+    '0001100000011100',
+    '0000000000000000',
+  ],
+
+  teen_g: [  // 青少年好：直立
+    '0000011111100000',
+    '0000111111110000',
+    '0001122112111000',
+    '0011221221121100',
+    '0011211001121100',
+    '0001111111111000',
+    '0000011111100000',
+    '0000111111110000',
+    '0001111111111000',
+    '0011110000111100',
+    '0011110000111100',
+    '0001110000011100',
+    '0000110000011000',
+    '0001111000111100',
+    '0001110000011100',
+    '0000000000000000',
+  ],
+
+  teen_b: [  // 青少年壞：粗壯憤怒
+    '0000001111100000',
+    '0000011111110000',
+    '0000112112110000',
+    '0001122222210000',
+    '0001121001120000',
+    '0000111111110000',
+    '0000001111100000',
+    '0001111111111100',
+    '0011111111111110',
+    '0111110000111110',
+    '0011110000111100',
+    '0001110000011100',
+    '0001110000011100',
+    '0011111000111110',
+    '0011110000011100',
+    '0000000000000000',
+  ],
+
+  adult_g: [  // 成年好：苗條優雅
+    '0000001111100000',
+    '0000011111110000',
+    '0000112222110000',
+    '0001122112211000',
+    '0001121001121000',
+    '0000111221110000',
+    '0000011111100000',
+    '0000111001110000',
+    '0001111001111000',
+    '0001111001111000',
+    '0001111001111000',
+    '0001110000111000',
+    '0000110000011000',
+    '0001111000111100',
+    '0001110000011100',
+    '0000000000000000',
+  ],
+
+  adult_b: [  // 成年壞：肥胖
+    '0000001111100000',
+    '0000011111110000',
+    '0000111122110000',
+    '0001111222111000',
+    '0001111001111000',
+    '0000111111110000',
+    '0000111111110000',
+    '0001111111111000',
+    '0011111001111100',
+    '0011111001111100',
+    '0011111111111100',
+    '0001111111111000',
+    '0000111001110000',
+    '0001111001111000',
+    '0001110000011000',
+    '0000000000000000',
+  ],
+
+  senior_g: [  // 高齡好：老爺爺/奶奶
+    '0000001111100000',
+    '0000011111110000',
+    '0000112222110000',
+    '0001122002211000',
+    '0001120000210000',
+    '0001111221110000',
+    '0001111111110000',
+    '0000011111100000',
+    '0000111111110000',
+    '0001111111111000',
+    '0001111001111000',
+    '0001100000011000',
+    '0001100000011000',
+    '0001100000011000',
+    '0011100000011100',
+    '0000000000000000',
+  ],
+
+  senior_b: [  // 高齡壞：駝背
+    '0000011111100000',
+    '0000111111000000',
+    '0001111110000000',
+    '0001122211000000',
+    '0001120221100000',
+    '0001111111100000',
+    '0001111111100000',
+    '0001111001100000',
+    '0011101001110000',
+    '0001101001100000',
+    '0001101001100000',
+    '0001101001100000',
+    '0001100000011000',
+    '0011100000011100',
+    '0000000000000000',
+    '0000000000000000',
+  ],
+
+  dead: [  // 死亡：翻白眼
+    '0000000000000000',
+    '0000001111100000',
+    '0000011111110000',
+    '0000112112110000',
+    '0001111221111000',
+    '0001111221111000',
+    '0000111111110000',
+    '0000111111110000',
+    '0000111111110000',
+    '0000011111100000',
+    '0000001111000000',
+    '0000011001100000',
+    '0000110000110000',
+    '0001100000011000',
+    '0011000000001100',
+    '0000000000000000',
+  ],
+
+  angel: [  // 天使：雲+圓
+    '0000001111100000',
+    '0000011111110000',
+    '0000111111111000',
+    '0001111111111100',
+    '0000111111111000',
+    '0000011111110000',
+    '0000001111100000',
+    '0000011111110000',
+    '0000111111111000',
+    '0000011111110000',
+    '0000001111100000',
+    '0000001001000000',
+    '0000011001100000',
+    '0000110000110000',
+    '0000000000000000',
+    '0000000000000000',
+  ],
+
+  poop: [
+    '0000000000000000',
+    '0000001110000000',
+    '0000011111000000',
+    '0000011111000000',
+    '0000001100000000',
+    '0000011110000000',
+    '0000111111100000',
+    '0000111111100000',
+    '0001111111110000',
+    '0001111111110000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+  ],
+
+  sick: [  // 病符
+    '0110001100011000',
+    '1001001100011000',
+    '1001001100011000',
+    '0110001100011000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+    '0000000000000000',
+  ],
+};
+
+// ── 取得當前精靈 key ───────────────────────────────────
+function sprKey(){
+  if(!pet) return 'egg';
+  if(pet.dead) return pet.angel ? 'angel' : 'dead';
+  if(pet.stage==='egg') return 'egg';
+  if(pet.stage==='baby') return 'baby';
+  return pet.stage + '_' + (pet.variant||'g');
+}
+
+// ── 繪製單個精靈（16x16 → scale 倍）────────────────────
+const SPR_SCALE = 6;  // 16px → 96px
+function drawSprite(key, dx, dy){
+  const rows = SPRITES[key];
+  if(!rows) return;
+  for(let r=0;r<rows.length;r++){
+    const row = rows[r];
+    for(let c=0;c<row.length;c++){
+      const v = parseInt(row[c]);
+      if(v===0) continue;
+      ctx.fillStyle = PAL[v];
+      ctx.fillRect(dx+c*SPR_SCALE, dy+r*SPR_SCALE, SPR_SCALE, SPR_SCALE);
+    }
+  }
+}
+
+// ── 小字型繪製 ─────────────────────────────────────────
+const FONT5 = {
+  '0':'01110100011000110001011110',
+  '1':'00100011000010000100001110',
+  '2':'01110100010001001000111110',
+  '3':'11110000101110000011110',
+  '4':'00110010101111100010001',
+  '5':'11111100001111000011111',
+  '6':'01110100001111010011110',
+  '7':'11111000100010001000100',
+  '8':'01110100010111010011110',
+  '9':'01110100011111000101110',
+  'A':'01110100011111100011',
+  'B':'11110100011111010011110',
+  'C':'01110100011000010011110',
+  'D':'11100100101000110011100',
+  'E':'11111100001110100011111',
+  'F':'11111100001110100011000',
+  'G':'01110100001011010011110',
+  'H':'10001100011111100011',
+  'I':'01110001000010000100111',
+  'K':'10010100101100101001',
+  'L':'10000100001000010011111',
+  'M':'10001110011010110001',
+  'N':'10001110011001110001',
+  'O':'01110100011000110011110',
+  'P':'11110100011111100001000',
+  'R':'11110100011111010010001',
+  'S':'01111100000111000011110',
+  'T':'11111001000010000100001',
+  'U':'10001100011000110011110',
+  'V':'10001100010101001000100',
+  'W':'10001100011010110001',
+  'X':'10001010100100010101',
+  'Y':'10001010100010000100001',
+  'Z':'11111000100100100011111',
+  ' ':'000000000000000',
+  ':':'000001000000001',
+  '!':'001000010000000001',
+  '?':'011001000001100000001',
+  '-':'000000111000000',
+  '.':'000000000000001',
+};
+function drawChar(ch, px, py, scale=1, color='#2c3e50'){
+  const bits = FONT5[ch.toUpperCase()];
+  if(!bits) return 5*scale;
+  ctx.fillStyle = color;
+  const cols = bits.length/5;
+  for(let i=0;i<bits.length;i++){
+    if(bits[i]==='1'){
+      const c=i%cols, r=Math.floor(i/cols);
+      ctx.fillRect(px+c*scale, py+r*scale, scale, scale);
+    }
+  }
+  return (cols+1)*scale;
+}
+function drawText(str, px, py, scale=1, color='#2c3e50'){
+  let x=px;
+  for(const ch of str) x+=drawChar(ch,x,py,scale,color);
+}
+
+// ── 主畫面繪製 ────────────────────────────────────────
+function render(){
+  // LCD 背景
+  ctx.fillStyle = '#9db874';
+  ctx.fillRect(0,0,W,H);
+
+  if(!pet || pet.dead){
+    if(pet && pet.angel){ drawScene_angel(); }
+    else if(pet && pet.dead){ drawScene_dead(); }
+    else { drawScene_start(); }
+    return;
+  }
+
+  if(pet.stage==='egg'){
+    drawScene_egg();
+    return;
+  }
+
+  if(pet.sleeping){
+    drawScene_sleep();
+    return;
+  }
+
+  if(menuOpen){
+    drawScene_menu();
+    return;
+  }
+
+  if(showStatus){
+    drawScene_status();
+    return;
+  }
+
+  if(playState){
+    drawScene_play();
+    return;
+  }
+
+  drawScene_main();
+}
+
+function drawScene_start(){
+  ctx.fillStyle = '#9db874';
+  ctx.fillRect(0,0,W,H);
+  drawText('PRESS B', 28, 40, 2);
+  drawText('TO START', 24, 60, 2);
+}
+
+function drawScene_egg(){
+  ctx.fillStyle = '#9db874';
+  ctx.fillRect(0,0,W,H);
+  // 蛋置中
+  const ex = Math.floor((W - 16*SPR_SCALE)/2);
+  const ey = Math.floor((H - 16*SPR_SCALE)/2) - 8;
+  drawSprite('egg', ex, ey);
+  // 搖動動畫
+  if(animFrame%20 < 10){
+    // 靜止
+  }
+  // 孵化進度
+  const pct = Math.min(1, pet.ageMinutes / (STAGE_AGE.baby * 60 * 24));
+  const barW = Math.floor(pct * 100);
+  ctx.fillStyle = '#2c3e50';
+  ctx.fillRect(30, H-20, 100, 6);
+  ctx.fillStyle = '#4a9e6e';
+  ctx.fillRect(30, H-20, barW, 6);
+}
+
+function drawScene_main(){
+  ctx.fillStyle = '#9db874';
+  ctx.fillRect(0,0,W,H);
+
+  // 寵物精靈（置中下方）
+  const sk = sprKey();
+  const walk = animFrame % 8 < 4 ? 0 : 0; // 未來可做位移
+  const ex = Math.floor((W - 16*SPR_SCALE)/2) + (animFrame%8<4 ? -2 : 2);
+  const ey = 30;
+  drawSprite(sk, ex, ey);
+
+  // 病符
+  if(pet.sick){
+    drawSprite('sick', 4, 4);
+  }
+
+  // 便便
+  for(let i=0;i<pet.poop;i++){
+    drawSprite('poop', 4 + i*20, H-32);
+  }
+
+  // 叫喚圖示（警示）
+  if(pet.callAttention && blinkOn){
+    ctx.fillStyle = '#c0392b';
+    ctx.beginPath();
+    ctx.arc(W-12, 10, 6, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // 年齡
+  const ageYears = (pet.ageMinutes / (60*24)).toFixed(1);
+  drawText('AGE ' + ageYears, 4, 4, 1);
+}
+
+function drawScene_sleep(){
+  ctx.fillStyle = '#1a2a1a'; // 暗色
+  ctx.fillRect(0,0,W,H);
+  const sk = sprKey();
+  const ex = Math.floor((W - 16*SPR_SCALE)/2);
+  const ey = 36;
+  drawSprite(sk, ex, ey);
+  // ZZZ
+  drawText('Z', W-28, 20, 2, '#8db854');
+  drawText('Z', W-20, 12, 2, '#8db854');
+  drawText('Z', W-14, 4,  2, '#8db854');
+}
+
+function drawScene_menu(){
+  ctx.fillStyle = '#9db874';
+  ctx.fillRect(0,0,W,H);
+  const menuName = MENUS[menuIdx];
+  const labels = {
+    food:'FOOD', light:'LIGHT', play:'GAME', medicine:'MEDS',
+    toilet:'CLEAN', status:'STATUS', discipline:'SCOLD', attention:'CALL'
+  };
+  drawText(labels[menuName]||menuName.toUpperCase(), 40, 20, 2);
+  if(menuName==='food'){
+    const items=['MEAL','SNACK'];
+    items.forEach((it,i)=>{
+      if(i===subMenuIdx){ ctx.fillStyle='#2c3e50'; ctx.fillRect(26,55+i*22,108,18); }
+      drawText(it, 30, 58+i*22, 2, i===subMenuIdx?'#9db874':'#2c3e50');
+    });
+  }
+}
+
+function drawScene_status(){
+  ctx.fillStyle = '#9db874';
+  ctx.fillRect(0,0,W,H);
+  const ageD = (pet.ageMinutes/60/24).toFixed(1);
+  const lines = [
+    'AGE   '+ageD,
+    'WGHT  '+pet.weight,
+    'HUNGR '+(4-pet.hunger),  // 顯示滿足度
+    'HAPPY '+pet.happy,
+    'DISC  '+pet.discipline,
+    pet.sick ? 'SICK  YES' : 'SICK  NO',
+  ];
+  lines.forEach((l,i)=>drawText(l, 6, 6+i*20, 1));
+}
+
+function drawScene_play(){
+  ctx.fillStyle = '#9db874';
+  ctx.fillRect(0,0,W,H);
+  const ps = playState;
+  if(ps.phase==='choose'){
+    drawText('GUESS!', 42, 8, 2);
+    const opts=['PAPER','ROCK','SCISS'];
+    opts.forEach((o,i)=>{
+      if(i===subMenuIdx){ ctx.fillStyle='#2c3e50'; ctx.fillRect(20,38+i*28,120,22); }
+      drawText(o,24,42+i*28,2,i===subMenuIdx?'#9db874':'#2c3e50');
+    });
+    drawText('A:SEL B:OK', 10, H-16, 1);
+  } else if(ps.phase==='result'){
+    const eNames=['','PAPER','ROCK ','SCISS'];
+    drawText('YOU: '+['PAPER','ROCK ','SCISS'][ps.playerChoice], 8, 14, 1);
+    drawText('CPU: '+eNames[ps.cpuChoice], 8, 30, 1);
+    drawText(ps.result==='win'?'WIN!':ps.result==='lose'?'LOSE':'DRAW', 44, 56, 2,
+             ps.result==='win'?'#1a5e2a':'#9e2a1a');
+    drawText('B: CONTINUE', 10, H-16, 1);
+  }
+}
+
+function drawScene_dead(){
+  ctx.fillStyle = '#9db874';
+  ctx.fillRect(0,0,W,H);
+  drawSprite('dead', Math.floor((W-16*SPR_SCALE)/2), 20);
+  if(blinkOn) drawText('...', 64, H-20, 2);
+}
+
+function drawScene_angel(){
+  ctx.fillStyle = '#9db874';
+  ctx.fillRect(0,0,W,H);
+  // 天使往上飄
+  const y = 20 + Math.sin(animFrame*0.1)*4;
+  drawSprite('angel', Math.floor((W-16*SPR_SCALE)/2), Math.floor(y));
+  drawText('GOODBYE', 28, H-20, 2);
+}
+
+// ── HUD（外殼上的心形列）──────────────────────────────
+function renderHUD(){
+  // 飢餓（0=餓 4=飽）: hunger 數值是「空槽」數
+  const hEl = document.getElementById('hunger-hearts');
+  const aEl = document.getElementById('happy-hearts');
+  if(!hEl||!aEl) return;
+  hEl.innerHTML='';
+  aEl.innerHTML='';
+  for(let i=0;i<4;i++){
+    const h=document.createElement('div');
+    h.className='heart'+(i<(4-pet.hunger)?'':' empty');
+    hEl.appendChild(h);
+    const a=document.createElement('div');
+    a.className='heart'+(i<pet.happy?'':' empty');
+    aEl.appendChild(a);
+  }
+  // 警示燈
+  document.getElementById('alert-light').className =
+    'on' ? (pet.callAttention||pet.sick||pet.poop>0?'on':'') :
+    (pet.callAttention||pet.sick||pet.poop>0?'on':'');
+  // fix:
+  const al = document.getElementById('alert-light');
+  al.className = (pet&&(pet.callAttention||pet.sick||pet.poop>0)) ? 'on' : '';
+}
+
+// ── 選單 icons 高亮 ────────────────────────────────────
+function renderMenuIcons(){
+  document.querySelectorAll('.menu-icon').forEach((el,i)=>{
+    el.classList.toggle('selected', i===menuIdx);
+  });
+}
+
+// ── 時間推進 ──────────────────────────────────────────
+let tickTimer = null;
+
+function isSleepTime(){
+  const h = new Date().getHours();
+  return h >= SLEEP_HOUR_START || h < SLEEP_HOUR_END;
+}
+
+function tick(){
+  if(!pet || pet.dead || pet.stage==='egg') {
+    if(pet && pet.stage==='egg') tickEgg();
+    animFrame++;
+    blinkTimer++;
+    if(blinkTimer>=10){ blinkOn=!blinkOn; blinkTimer=0; }
+    render();
+    return;
+  }
+
+  animFrame++;
+  blinkTimer++;
+  if(blinkTimer>=10){ blinkOn=!blinkOn; blinkTimer=0; }
+
+  const sleeping = isSleepTime();
+  pet.sleeping = sleeping;
+
+  if(!sleeping){
+    const m = minsPerTick();
+    pet.ageMinutes += m;
+
+    // 飢餓衰減
+    pet.hungerMinsAcc += m;
+    if(pet.hungerMinsAcc >= HUNGER_DECAY_MINS){
+      pet.hungerMinsAcc -= HUNGER_DECAY_MINS;
+      if(pet.hunger < 4){ pet.hunger++; }
+      if(pet.hunger >= 4){ pet.callAttention=true; pet.careMiss++; }
+    }
+
+    // 快樂衰減
+    pet.happyMinsAcc += m;
+    if(pet.happyMinsAcc >= HAPPY_DECAY_MINS){
+      pet.happyMinsAcc -= HAPPY_DECAY_MINS;
+      if(pet.happy > 0) pet.happy--;
+      if(pet.happy <= 0){ pet.callAttention=true; pet.careMiss++; }
+    }
+
+    // 便便衰減（飽足一段時間後排便）
+    // 每 2 小時可能產生一個便便
+    if(!pet._poopAcc) pet._poopAcc=0;
+    pet._poopAcc += m;
+    if(pet._poopAcc >= 120){
+      pet._poopAcc=0;
+      if(pet.poop < 3){
+        pet.poop++;
+        pet.callAttention=true;
+      }
+      if(pet.poop >= 2 && !pet.sick){
+        pet.sick=true; // 便便太多 → 生病
+      }
+    }
+
+    // 生病：飢餓或快樂太低
+    if((pet.hunger>=4 || pet.happy<=0) && !pet.sick && Math.random()<0.01){
+      pet.sick=true;
+    }
+
+    // 死亡判定（飢餓且生病超過一段時間）
+    if(!pet._sickTime) pet._sickTime=0;
+    if(pet.sick) pet._sickTime+=m;
+    else pet._sickTime=0;
+    if(pet._sickTime > 240 || pet.careMiss > 10){ // 4小時沒治病 → 死
+      die();
+      return;
+    }
+
+    // 成長判定
+    checkGrowth();
+  }
+
+  savePet();
+  render();
+  renderHUD();
+}
+
+function tickEgg(){
+  const m = minsPerTick();
+  pet.ageMinutes += m;
+  // 孵化：1歲 = 24小時 = 1440分鐘
+  if(pet.ageMinutes >= STAGE_AGE.baby * 60 * 24){
+    hatch();
+  }
+  savePet();
+  render();
+}
+
+function hatch(){
+  pet.stage = 'baby';
+  pet.ageMinutes = 0;
+  pet.hunger = 2;
+  pet.happy  = 2;
+  sfx('hatch');
+}
+
+function checkGrowth(){
+  const ageDays = pet.ageMinutes / (60*24);
+  let nextStage = null;
+  const stageOrder = ['baby','child','teen','adult','senior'];
+  const idx = stageOrder.indexOf(pet.stage);
+  if(idx===-1) return;
+  const stages = ['baby','child','teen','adult','senior'];
+  const nextIdx = idx+1;
+  if(nextIdx >= stages.length) return;
+  const needAge = STAGE_AGE[stages[nextIdx]];
+  if(ageDays >= needAge){
+    evolve();
+  }
+}
+
+function evolve(){
+  const good = pet.careMiss <= CARE_MISS_THRESHOLD;
+  pet.variant = good ? 'good' : 'bad';
+  const order = ['baby','child','teen','adult','senior'];
+  const i = order.indexOf(pet.stage);
+  if(i < order.length-1){
+    pet.stage = order[i+1];
+    pet.careMiss = 0;
+    sfx('evolve');
+  } else {
+    // Senior 死亡年齡
+    if(pet.ageMinutes >= STAGE_AGE.senior * 60 * 24 + 60*24*5){
+      die(true); // 自然死亡 → 天使
+    }
+  }
+}
+
+function die(natural=false){
+  pet.dead = true;
+  pet.angel = natural;
+  sfx('dead');
+  savePet();
+  render();
+}
+
+// ── 離線補算 ──────────────────────────────────────────
+function applyOffline(){
+  if(!pet || pet.dead || pet.stage==='egg') return;
+  const now = Date.now();
+  const elapsed = now - (pet.lastTs||now);
+  if(elapsed <= 0) return;
+  // 離線 > 8 小時才開始算傷害
+  const effective = Math.max(0, elapsed - OFFLINE_GRACE_MS);
+  if(effective <= 0){ pet.lastTs=now; return; }
+  // 換算成遊戲分鐘
+  let gameMins = (effective/1000/60) * (FAST_MODE?60:1);
+  // 夜間時段大約扣除一半
+  gameMins *= 0.7; // 粗略估算夜間保護
+  pet.ageMinutes += gameMins;
+  pet.hungerMinsAcc += gameMins;
+  const hungerTicks = Math.floor(pet.hungerMinsAcc / HUNGER_DECAY_MINS);
+  pet.hungerMinsAcc %= HUNGER_DECAY_MINS;
+  pet.hunger = Math.min(4, pet.hunger + hungerTicks);
+  pet.happyMinsAcc += gameMins;
+  const happyTicks = Math.floor(pet.happyMinsAcc / HAPPY_DECAY_MINS);
+  pet.happyMinsAcc %= HAPPY_DECAY_MINS;
+  pet.happy = Math.max(0, pet.happy - happyTicks);
+  if(pet.hunger>=4) pet.callAttention=true;
+  if(pet.happy<=0)  pet.callAttention=true;
+  pet.lastTs = now;
+}
+
+// ── 照顧動作 ──────────────────────────────────────────
+function actionFeed(snack){
+  if(!pet||pet.dead||pet.sleeping) return;
+  if(snack){
+    pet.weight+=1;
+    if(pet.happy<4) pet.happy++;
+  } else {
+    if(pet.hunger>0){ pet.hunger--; pet.weight+=1; }
+  }
+  pet.callAttention = (pet.hunger>=4||pet.happy<=0||pet.sick||pet.poop>0);
+  sfx('eat');
+  savePet();
+}
+
+function actionLight(){
+  if(!pet||pet.dead) return;
+  pet.light = !pet.light;
+  sfx('click');
+  savePet();
+}
+
+function actionMedicine(){
+  if(!pet||pet.dead||!pet.sick) return;
+  pet.sick=false;
+  pet._sickTime=0;
+  sfx('meds');
+  savePet();
+}
+
+function actionToilet(){
+  if(!pet||pet.dead) return;
+  pet.poop=0;
+  pet.callAttention=(pet.hunger>=4||pet.happy<=0||pet.sick);
+  sfx('clean');
+  savePet();
+}
+
+function actionDiscipline(){
+  if(!pet||pet.dead) return;
+  if(pet.callAttention){
+    if(pet.discipline<4) pet.discipline++;
+    pet.callAttention=false;
+  }
+  sfx('scold');
+  savePet();
+}
+
+// ── 猜拳小遊戲 ────────────────────────────────────────
+// 選項：0=Paper 1=Rock 2=Scissors
+function startPlay(){
+  if(!pet||pet.dead||pet.sleeping) return;
+  playState={phase:'choose',playerChoice:0,cpuChoice:0,result:null,wins:0};
+  subMenuIdx=0;
+  menuOpen=false;
+  render();
+}
+
+function resolvePlay(){
+  const p=playState.playerChoice;
+  const c=Math.floor(Math.random()*3);
+  playState.cpuChoice=c;
+  // 0=Paper 1=Rock 2=Scissors
+  // Paper > Rock > Scissors > Paper
+  let res='draw';
+  if(p===c) res='draw';
+  else if((p===0&&c===1)||(p===1&&c===2)||(p===2&&c===0)) res='win';
+  else res='lose';
+  playState.result=res;
+  playState.phase='result';
+  if(res==='win'){
+    if(pet.happy<4) pet.happy++;
+    sfx('win');
+  } else if(res==='lose'){
+    sfx('lose');
+  } else {
+    sfx('click');
+  }
+  pet.callAttention=(pet.hunger>=4||pet.happy<=0||pet.sick||pet.poop>0);
+  savePet();
+}
+
+// ── 音效（Web Audio）──────────────────────────────────
+let AC=null;
+function getAC(){ if(!AC) AC=new(window.AudioContext||window.webkitAudioContext)(); return AC; }
+function beep(freq,dur,vol=0.15,type='square'){
+  try{
+    const ac=getAC(); if(ac.state==='suspended') ac.resume();
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(); o.stop(ac.currentTime+dur);
+  }catch(e){}
+}
+let muted=false;
+function sfx(type){
+  if(muted) return;
+  switch(type){
+    case 'eat':    beep(880,0.1); break;
+    case 'hatch':  [523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,0.15),i*120)); break;
+    case 'evolve': [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.18),i*100)); break;
+    case 'dead':   [440,330,220,110].forEach((f,i)=>setTimeout(()=>beep(f,0.25,'sawtooth'),i*200)); break;
+    case 'meds':   beep(660,0.08); setTimeout(()=>beep(880,0.08),100); break;
+    case 'clean':  beep(440,0.06); break;
+    case 'scold':  beep(220,0.12,'sawtooth'); break;
+    case 'click':  beep(600,0.04); break;
+    case 'win':    [784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.1),i*80)); break;
+    case 'lose':   beep(300,0.15,'sawtooth'); break;
+    case 'alert':  beep(880,0.05); setTimeout(()=>beep(880,0.05),150); break;
+  }
+}
+
+// ── 按鈕邏輯 ──────────────────────────────────────────
+// A: 左移（選單切換）/ 選項切換
+// B: 確認
+// C: 右移 / 取消
+
+document.getElementById('btn-a').addEventListener('click',()=>{
+  getAC(); // unlock audio
+  if(!pet||pet.dead){ return; }
+  if(playState&&playState.phase==='choose'){
+    subMenuIdx=(subMenuIdx+1)%3; render(); return;
+  }
+  if(menuOpen){
+    const m=MENUS[menuIdx];
+    if(m==='food'){ subMenuIdx=(subMenuIdx+1)%2; }
+    render(); return;
+  }
+  menuIdx=(menuIdx+MENUS.length-1)%MENUS.length;
+  renderMenuIcons(); render();
+});
+
+document.getElementById('btn-b').addEventListener('click',()=>{
+  getAC();
+  if(!pet){ // 開始遊戲
+    pet=defaultPet(); savePet(); render(); return;
+  }
+  if(pet.dead){
+    pet=defaultPet(); savePet(); render(); return;
+  }
+  if(playState){
+    if(playState.phase==='choose'){ resolvePlay(); }
+    else { playState=null; render(); }
+    return;
+  }
+  if(showStatus){ showStatus=false; render(); return; }
+
+  // 確認選單
+  const m=MENUS[menuIdx];
+  if(!menuOpen){
+    if(m==='status'){ showStatus=true; render(); return; }
+    if(m==='play'){ startPlay(); return; }
+    if(m==='light'){ actionLight(); }
+    if(m==='medicine'){ actionMedicine(); }
+    if(m==='toilet'){ actionToilet(); }
+    if(m==='discipline'){ actionDiscipline(); }
+    if(m==='attention'){ pet.callAttention=false; savePet(); }
+    if(m==='food'){ menuOpen=true; subMenuIdx=0; render(); return; }
+    render(); renderHUD();
+  } else {
+    // 已在 food 子選單
+    if(m==='food'){ actionFeed(subMenuIdx===1); menuOpen=false; }
+    render(); renderHUD();
+  }
+});
+
+document.getElementById('btn-c').addEventListener('click',()=>{
+  getAC();
+  if(!pet||pet.dead) return;
+  if(playState){ playState=null; render(); return; }
+  if(menuOpen){ menuOpen=false; render(); return; }
+  if(showStatus){ showStatus=false; render(); return; }
+  menuIdx=(menuIdx+1)%MENUS.length;
+  renderMenuIcons(); render();
+});
+
+// 選單 icon 直接點擊
+document.querySelectorAll('.menu-icon').forEach((el,i)=>{
+  el.addEventListener('click',()=>{
+    getAC();
+    menuIdx=i;
+    renderMenuIcons();
+    // 直接觸發 B 鍵效果
+    document.getElementById('btn-b').click();
+  });
+});
+
+// 靜音
+document.getElementById('btn-mute').addEventListener('click',()=>{
+  muted=!muted;
+  document.getElementById('btn-mute').classList.toggle('active',muted);
+});
+
+// 快速模式
+document.getElementById('btn-fast').addEventListener('click',()=>{
+  FAST_MODE=!FAST_MODE;
+  document.getElementById('btn-fast').classList.toggle('active',FAST_MODE);
+  if(pet) pet.fastMode=FAST_MODE;
+});
+
+// 重置
+document.getElementById('btn-reset').addEventListener('click',()=>{
+  if(!confirm('確定要重置嗎？')) return;
+  localStorage.removeItem('tamagotchi');
+  pet=null; render();
+});
+
+// 鍵盤支援
+document.addEventListener('keydown',e=>{
+  if(e.key==='a'||e.key==='A'||e.key==='ArrowLeft') document.getElementById('btn-a').click();
+  if(e.key==='b'||e.key==='B'||e.key==='Enter'||e.key===' ') document.getElementById('btn-b').click();
+  if(e.key==='c'||e.key==='C'||e.key==='ArrowRight') document.getElementById('btn-c').click();
+});
+
+// ── 初始化 ────────────────────────────────────────────
+if(loadPet()){
+  applyOffline();
+  if(pet) pet.lastTs=Date.now();
+  FAST_MODE = pet&&pet.fastMode ? true : false;
+  document.getElementById('btn-fast').classList.toggle('active',FAST_MODE);
+} else {
+  pet=null;
+}
+
+renderMenuIcons();
+render();
+if(pet) renderHUD();
+
+tickTimer = setInterval(tick, TICK_MS);
+
+// 存離開時間
+window.addEventListener('beforeunload',()=>{
+  if(pet){pet.lastTs=Date.now();savePet();}
+});
+</script>
+</body>
+</html>
