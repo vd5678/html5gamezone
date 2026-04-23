@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vd5678.github.io/html5gamezone/sitemap.xml
