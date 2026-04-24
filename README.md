@@ -16,6 +16,7 @@
 | 2048 | [Play](https://vd5678.github.io/html5gamezone/2048.html) | ← → ↑ ↓ 滑動合併；手機：滑動操作；Z 鍵或 UNDO 按鈕悔棋 |
 | 太空侵略者 Space Invaders | [Play](https://vd5678.github.io/html5gamezone/SpaceInvaders.html) | ← → 移動，SPACE 連發；P 暫停，ESC 返回；手機：觸控按鈕，點畫面暫停 |
 | Nexus Viper | [Play](https://vd5678.github.io/html5gamezone/NexusViper.html) | ← → ↑ ↓ 移動，Z/SPACE 射擊，X 選擇升級；P 暫停，ESC 返回；手機：觸控按鈕 |
+| 電子雞 Tamagotchi | [Play](https://vd5678.github.io/html5gamezone/Tamagotchi.html) | A 選擇，B 確認，C 返回；觸控按鈕；餵食、睡眠、遊戲、洗澡等照護互動，3 種寵物 |
 
 ## 功能特色
 
@@ -23,6 +24,7 @@
 - 無需安裝，直接瀏覽器開啟
 - Web Audio API 合成音效
 - 響應式版面配置
+- 遊戲存檔（localStorage），關閉後重新開啟可繼續
 
 ## 版權聲明
 
@@ -36,4 +38,5 @@ Copyright (c) 2026 Victor H.S. Liu
 - 病菌剋星（Dr. Pill）遊戲設計參考自任天堂 Dr. Mario，本作為非商業個人重製，版權歸原著作人所有。
 - 2048 遊戲設計參考自 Gabriele Cirulli 原版（MIT License），本作為獨立重製實作。
 - 太空侵略者（Space Invaders）遊戲設計參考自 TAITO 1978 年原版，本作為非商業個人重製，版權歸原著作人所有。
+- 電子雞（Tamagotchi）遊戲設計參考自 Bandai 1996 年原版，本作為非商業個人重製，版權歸原著作人所有。
 - 本程式碼為原創實作，未使用任何第三方遊戲引擎。

@@ -297,6 +297,21 @@
     </div>
   </a>
 
+  <!-- Tamagotchi -->
+  <a class="card" href="Tamagotchi.html" style="--accent:#ff6eb4;--accent-glow:#ff6eb422;">
+    <div class="thumb-wrap">
+      <canvas id="thumb-tama" width="224" height="256"></canvas>
+      <div class="card-overlay"><span class="play-btn">&#9654; PLAY</span></div>
+    </div>
+    <div class="card-info">
+      <div class="card-title">TAMAGOTCHI</div>
+      <div class="card-sub">&#34179;&#25311;&#23500;&#23526; &middot; &#39278;&#39135;&#30563;&#30748;&#29031;&#35530;<br>3 &#31278;&#23500;&#23526; &middot; &#25104;&#38271;&#36914;&#21270;</div>
+      <span class="card-tag">A B C</span>
+      <span class="card-tag">TOUCH</span>
+      <span class="card-tag">&#23384;&#27604;</span>
+    </div>
+  </a>
+
 </div>
 
 <footer>
@@ -1097,6 +1112,120 @@ try{(function(){
   });
 
 })();}catch(e){console.warn('thumb-nv',e);}
+
+// -- Tamagotchi thumbnail: actual LCD game view --
+try{(function(){
+  const cv=document.getElementById('thumb-tama');
+  const ctx=cv.getContext('2d');
+  const CW=224,CH=256;
+  // The game LCD is 168x152. Scale to fit canvas with a bezel border.
+  const BEZEL=16;
+  const scaleX=(CW-BEZEL*2)/168, scaleY=(CH-BEZEL*2)/152;
+  const SC=Math.min(scaleX,scaleY);
+  const offX=Math.floor((CW-168*SC)/2), offY=Math.floor((CH-152*SC)/2);
+
+  // Outer bezel/border
+  ctx.fillStyle='#2a1a2e';ctx.fillRect(0,0,CW,CH);
+  ctx.fillStyle='#d070a0';ctx.fillRect(2,2,CW-4,CH-4);
+  ctx.fillStyle='#2a1a2e';ctx.fillRect(6,6,CW-12,CH-12);
+
+  // helper: fill a game pixel (x,y in game coords)
+  const px=(gx,gy,w,h,col)=>{
+    ctx.fillStyle=col;
+    ctx.fillRect(offX+gx*SC, offY+gy*SC, w*SC, h*SC);
+  };
+
+  // LCD background + subtle grid
+  px(0,0,168,152,'#fde8f0');
+  ctx.save();
+  ctx.globalAlpha=0.07;
+  ctx.strokeStyle='#c06090';ctx.lineWidth=0.5;
+  for(let x=0;x<=168;x+=10){ctx.beginPath();ctx.moveTo(offX+x*SC,offY);ctx.lineTo(offX+x*SC,offY+152*SC);ctx.stroke();}
+  for(let y=0;y<=152;y+=10){ctx.beginPath();ctx.moveTo(offX,offY+y*SC);ctx.lineTo(offX+168*SC,offY+y*SC);ctx.stroke();}
+  ctx.restore();
+
+  // -- Bear pixel sprite centered (14x14 game units = 140px at S=10) --
+  // Using brown bear palette: dark=#7a3018, mid=#c07840, light=#e8b870, white=#fff8f0
+  const S=10, ex=Math.floor((168-14*S)/2), ey=10;
+  const bear=[
+    // row0
+    [4,0,2,'#4a1808'],[4,0,2,'#7a3018'],
+    [3,0,1,'#4a1808'],[9,0,1,'#4a1808'],
+    // ears
+    [3,0,2,'#c07840'],[9,0,2,'#c07840'],
+    [3,1,2,'#b06030'],[9,1,2,'#b06030'],
+    // head
+    [3,2,8,'#c07840'],
+    [2,3,10,'#d09050'],
+    [2,4,10,'#d09050'],
+    [2,5,10,'#c07840'],
+    // face
+    [4,3,2,'#1a1a1a'],[8,3,2,'#1a1a1a'], // eyes
+    [4,4,2,'#ffe8d0'],[8,4,2,'#ffe8d0'], // eye whites
+    [5,5,4,'#e8c090'], // nose area
+    [6,6,2,'#7a3018'], // nose
+    [4,7,6,'#7a3018'], // mouth
+    // body
+    [3,8,8,'#c07840'],
+    [2,9,10,'#b06030'],
+    [2,10,10,'#b06030'],
+    [3,11,8,'#c07840'],
+    // arms
+    [1,9,2,'#c07840'],[11,9,2,'#c07840'],
+    // legs
+    [3,12,3,'#7a3018'],[8,12,3,'#7a3018'],
+    [3,13,3,'#5a2010'],[8,13,3,'#5a2010'],
+  ];
+  bear.forEach(([x,y,w,col])=>px(ex+x*S, ey+y*S, w*S, S, col));
+
+  // Belly patch
+  px(ex+4*S,ey+9*S,6*S,3*S,'#e8c090');
+
+  // Thought bubble (heart need) top-right
+  ctx.fillStyle='rgba(255,255,255,0.94)';
+  ctx.strokeStyle='#ffaad4';ctx.lineWidth=1.5*SC;
+  ctx.beginPath();ctx.roundRect(offX+130*SC,offY+8*SC,30*SC,30*SC,5*SC);ctx.fill();ctx.stroke();
+  // bubble tail dots
+  ctx.fillStyle='rgba(255,255,255,0.9)';
+  [[127,40],[124,44],[121,47]].forEach(([bx,by])=>{ctx.beginPath();ctx.arc(offX+bx*SC,offY+by*SC,2*SC,0,Math.PI*2);ctx.fill();});
+  // heart inside bubble
+  ctx.save();ctx.fillStyle='#ff3377';ctx.font=`${14*SC}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('\u2665',offX+145*SC,offY+23*SC);ctx.restore();
+
+  // AGE label top-left
+  ctx.save();ctx.fillStyle='#6b1a40';ctx.font=`bold ${7*SC}px "Press Start 2P",monospace`;
+  ctx.textBaseline='top';ctx.fillText('0.3d',offX+4*SC,offY+4*SC);ctx.restore();
+
+  // HUD separator line
+  px(0,140,168,1,'#d4689a');
+
+  // Hunger hearts (2/4 full)
+  for(let i=0;i<4;i++){
+    ctx.fillStyle=i<2?'#ff6eb4':'#f0c0d8';
+    const hx=offX+(8+i*14)*SC, hy=offY+143*SC, hr=4*SC;
+    ctx.beginPath();ctx.arc(hx+hr*0.6,hy,hr*0.7,Math.PI,0);ctx.arc(hx+hr*1.8,hy,hr*0.7,Math.PI,0);
+    ctx.lineTo(hx+hr*2.5,hy+hr);ctx.lineTo(hx+hr*1.2,hy+hr*2.2);ctx.lineTo(hx-hr*0.1,hy+hr);
+    ctx.closePath();ctx.fill();
+  }
+  // Happy hearts (3/4 full)
+  for(let i=0;i<4;i++){
+    ctx.fillStyle=i<3?'#ff6eb4':'#f0c0d8';
+    const hx=offX+(90+i*14)*SC, hy=offY+143*SC, hr=4*SC;
+    ctx.beginPath();ctx.arc(hx+hr*0.6,hy,hr*0.7,Math.PI,0);ctx.arc(hx+hr*1.8,hy,hr*0.7,Math.PI,0);
+    ctx.lineTo(hx+hr*2.5,hy+hr);ctx.lineTo(hx+hr*1.2,hy+hr*2.2);ctx.lineTo(hx-hr*0.1,hy+hr);
+    ctx.closePath();ctx.fill();
+  }
+
+  // Menu icons bottom strip
+  const icons=['🍚','🚽','🛁','🎮','🤗','🏃','💊','💡','📢','📊'];
+  ctx.save();ctx.font=`${8*SC}px serif`;ctx.textBaseline='top';
+  icons.forEach((ic,i)=>{
+    if(i===0){ctx.fillStyle='rgba(255,80,160,0.22)';ctx.fillRect(offX+i*17*SC,offY+152*SC-14*SC,16*SC,13*SC);}
+    ctx.fillText(ic,offX+(i*17+1)*SC,offY+152*SC-13*SC);
+  });
+  ctx.restore();
+
+})();}catch(e){console.warn('thumb-tama',e);}
 
 }); // document.fonts.ready
 </script>

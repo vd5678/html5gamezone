@@ -1,0 +1,2958 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TAMAGOTCHI</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ENS86KVVE5"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-ENS86KVVE5');
+</script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{
+  height:100%;overflow:hidden;
+}
+body{
+  background:linear-gradient(160deg,#ffe0f0 0%,#f0d0ff 100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  font-family:'Press Start 2P',monospace;
+  user-select:none;
+  touch-action:none;
+  overflow:hidden;
+}
+/* 手機自動縮放：讓 shell 填滿螢幕寬度 */
+@media (max-width: 400px) {
+  #shell{
+    transform-origin: top center;
+    transform: scale(var(--shell-scale, 1));
+    margin-top: calc(var(--shell-top-margin, 28px));
+  }
+}
+
+/* 憭挺嚗??剝? */
+#shell{
+  position:relative;
+  width:240px;
+  height:auto;
+  background:radial-gradient(ellipse at 38% 32%, #ffe8f4 0%, #ffb6d9 50%, #f07ab0 100%);
+  border-radius: 46% 46% 44% 44%;
+  box-shadow:
+    inset -6px -8px 16px rgba(200,60,120,0.18),
+    inset 4px 4px 12px rgba(255,255,255,0.55),
+    0 0 0 4px #e8709a,
+    0 8px 0 3px #c04878,
+    0 10px 30px rgba(180,60,120,0.35);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding-top:28px;
+  padding-bottom:20px;
+  gap:8px;
+  margin-top:28px;
+}
+/* ?單 */
+#shell::before,
+#shell::after{
+  content:'';
+  position:absolute;
+  top:-26px;
+  width:54px;height:54px;
+  background:radial-gradient(ellipse at 40% 35%, #ffcce8 0%, #f07ab0 60%, #c04878 100%);
+  border-radius:50%;
+  box-shadow:0 0 0 4px #e8709a;
+  z-index:-1;
+}
+#shell::before{ left:14px; }
+#shell::after{  right:14px; }
+
+/* ?嚙?嚙?霅衣內???嚙?嚙?*/
+#alert-row{
+  display:flex;
+  width:200px;
+  justify-content:flex-end;
+  align-items:center;
+}
+#alert-light{
+  width:12px;height:12px;
+  border-radius:50%;
+  background:transparent;
+  box-shadow:none;
+  transition:background 0.15s, box-shadow 0.15s;
+}
+#alert-light.on{
+  background:#ff6eb4;
+  box-shadow:0 0 10px #ff6eb4, 0 0 20px #ff69b455;
+}
+
+/* ?嚙?嚙??嚙踝蕭?憭蕭? ?嚙?嚙?*/
+#screen-frame{
+  width:196px;height:176px;
+  background:#2a1a2e;
+  border-radius:14px;
+  border:5px solid #d070a0;
+  box-shadow:
+    inset 0 3px 10px rgba(0,0,0,0.6),
+    0 2px 8px rgba(255,150,200,0.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#screen{
+  width:168px;height:152px;
+  background:#fde8f0;
+  image-rendering:pixelated;
+  display:block;
+  border-radius:6px;
+}
+
+/* ?嚙?嚙??嚙?嚙踝蕭? ?嚙?嚙?*/
+#status-bar{
+  display:flex;
+  width:200px;
+  justify-content:space-around;
+  align-items:center;
+}
+.stat-group{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+}
+.stat-label{
+  font-size:5px;
+  color:#b04070;
+  letter-spacing:1px;
+}
+.hearts{display:flex;gap:2px;}
+.heart{
+  width:9px;height:9px;
+  background:#ff6eb4;
+  clip-path:polygon(50% 90%,0% 35%,15% 0%,50% 20%,85% 0%,100% 35%);
+}
+.heart.empty{background:#f0c0d8;opacity:0.6;}
+.heart.energy{background:#60c8ff;}
+.heart.energy.empty{background:#c0e8ff;opacity:0.5;}
+
+/* ?嚙?嚙??嚙賢 icon ???嚙?嚙?*/
+#menu-row{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:4px;
+  width:200px;
+}
+.menu-icon{
+  width:23px;height:23px;
+  border-radius:8px;
+  background:#ffcce8;
+  border:2px solid #e890c0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;
+  cursor:pointer;
+  position:relative;
+  transition:transform 0.08s;
+  box-shadow:0 2px 0 #c060a0;
+}
+.menu-icon:active{transform:translateY(2px);box-shadow:none;}
+.menu-icon.selected{
+  background:#fff0f8;
+  border-color:#ff6eb4;
+  box-shadow:0 0 0 1px #ff6eb4, 0 2px 0 #c060a0;
+}
+.menu-icon.selected::after{
+  content:'';
+  position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);
+  border:4px solid transparent;border-top-color:#ff6eb4;
+}
+
+/* ?嚙?嚙?銝蕭??嚙踝蕭? ?嚙?嚙?*/
+#btn-row{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  margin-top:2px;
+}
+.btn{
+  border:none;cursor:pointer;
+  font-family:'Press Start 2P',monospace;
+  color:#fff;
+  border-radius:50%;
+  transition:transform 0.07s,box-shadow 0.07s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:7px;
+}
+.btn:active{transform:translateY(3px);}
+#btn-a{width:34px;height:34px;background:#ff8ec8;box-shadow:0 5px 0 #c0508a;}
+#btn-a:active{box-shadow:0 2px 0 #c0508a;}
+#btn-b{width:42px;height:42px;background:#c878e8;font-size:8px;box-shadow:0 5px 0 #8840b0;}
+#btn-b:active{box-shadow:0 2px 0 #8840b0;}
+#btn-c{width:34px;height:34px;background:#80d8f0;box-shadow:0 5px 0 #3898b8;}
+#btn-c:active{box-shadow:0 2px 0 #3898b8;}
+
+/* ?嚙?嚙?摨蕭? ?嚙?嚙?*/
+#bottom-row{
+  display:flex;gap:6px;align-items:center;
+  margin-top:0;
+}
+.small-btn{
+  font-size:5px;padding:3px 5px;
+  background:#ffcce8;border:2px solid #e890c0;border-radius:6px;
+  color:#a04070;cursor:pointer;
+  font-family:'Press Start 2P',monospace;
+  box-shadow:0 2px 0 #c060a0;
+}
+.small-btn:active{transform:translateY(2px);box-shadow:none;}
+.small-btn.active{background:#ff6eb4;color:#fff;border-color:#c0408a;}
+
+/* ?嚙?嚙??嚙賜 hint ?嚙?嚙?*/
+#keyhint{
+  font-size:5px;color:#c080a8;
+  margin-top:14px;text-align:center;
+  line-height:2;
+  font-family:'Press Start 2P',monospace;
+}
+</style>
+</head>
+<body>
+
+<div id="shell">
+  <div id="alert-row">
+    <div id="alert-light"></div>
+  </div>
+
+  <div id="screen-frame">
+    <canvas id="screen" width="168" height="152"></canvas>
+  </div>
+
+  <div id="status-bar">
+    <div class="stat-group">
+      <div class="stat-label">HUNGER</div>
+      <div class="hearts" id="hunger-hearts">
+        <div class="heart empty"></div><div class="heart empty"></div><div class="heart empty"></div><div class="heart empty"></div>
+      </div>
+    </div>
+    <div class="stat-group">
+      <div class="stat-label">HAPPY</div>
+      <div class="hearts" id="happy-hearts">
+        <div class="heart empty"></div><div class="heart empty"></div><div class="heart empty"></div><div class="heart empty"></div>
+      </div>
+    </div>
+    <div class="stat-group">
+      <div class="stat-label">ENERGY</div>
+      <div class="hearts" id="stamina-hearts">
+        <div class="heart energy empty"></div><div class="heart energy empty"></div><div class="heart energy empty"></div><div class="heart energy empty"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="menu-row">
+    <div class="menu-icon" data-idx="0" title="&#39221;&#39135;">&#127852;</div>
+    <div class="menu-icon" data-idx="1" title="&#24257;&#25152;">&#128701;</div>
+    <div class="menu-icon" data-idx="2" title="&#27927;&#28577;">&#128703;</div>
+    <div class="menu-icon" data-idx="3" title="&#36938;&#25138;">&#127904;</div>
+    <div class="menu-icon" data-idx="4" title="&#25265;&#25265;">&#129303;</div>
+    <div class="menu-icon" data-idx="5" title="&#36939;&#21205;">&#127939;</div>
+    <div class="menu-icon" data-idx="6" title="&#21507;&#34277;">&#128138;</div>
+    <div class="menu-icon" data-idx="7" title="&#38651;&#29128;">&#127769;</div>
+    <div class="menu-icon" data-idx="8" title="&#31649;&#25945;">&#128276;</div>
+    <div class="menu-icon" data-idx="9" title="&#29376;&#24907;">&#128150;</div>
+  </div>
+
+  <div id="btn-row">
+    <button class="btn" id="btn-a">A</button>
+    <button class="btn" id="btn-b">B</button>
+    <button class="btn" id="btn-c">C</button>
+  </div>
+
+  <div id="bottom-row">
+    <button class="small-btn" id="btn-mute">MUTE</button>
+  </div>
+</div>
+
+<div id="keyhint">A=&#19978;&#19968;&#20491; &nbsp; B=&#30906;&#35469; &nbsp; C=&#19979;&#19968;&#20491; &nbsp; A+C=&#37325;&#32622;</div>
+
+<script>
+'use strict';
+// ?嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭?
+//  TAMAGOTCHI  HTML5  ?? v2
+// ?嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭??嚙踝蕭?
+const cv  = document.getElementById('screen');
+const ctx = cv.getContext('2d');
+const W = 168, H = 152;
+
+// ?嚙?嚙??嚙踝蕭??嚙賣 ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+const TICK_MS = 1000;
+// 嚙?tick ?嚙賡莎蕭??嚙賣?嚙踝蕭???
+const mpt = () => (1/60);
+
+const HUNGER_DECAY  = 8;    // 每8分鐘飢餓+1（初始2，~24分鐘後滿格呼叫）
+const HAPPY_DECAY   = 10;   // 每10分鐘心情-1（初始2，~20分鐘後歸零）
+const POOP_INTERVAL = 7;    // 7分鐘出現便便警告
+const POOP_WARN_TTL = 3;    // 警告3分鐘後真的拉出來
+const OFFLINE_GRACE = 8*60*60*1000;
+
+const SLEEP_START = 23, SLEEP_END = 7;
+const CARE_MISS_MAX = 3;
+const STAMINA_DECAY   = 12; // 體力每12分鐘-1
+const STAMINA_RESTORE = 3;  // 睡眠每3分鐘+1（手動睡3分補1格，夜間8h補滿）
+const TIRED_SICK_TTL  = 8;  // 體力0持續8分鐘生病
+const STARVE_TTL = 60;      // 飢餓滿格60分鐘後死亡
+const LONELY_DECAY    = 10; // 每10分鐘寂寞-1
+const LONELY_SICK_TTL = 10; // 寂寞0持續10分鐘生病
+const DIRTY_ACCUM     = 10; // 每10分鐘髒污+1
+const DIRTY_SICK_TTL  = 12; // 髒污4持續12分鐘生病
+const NEED_INTERVAL   = 30; // 每30分鐘換一個心情需求
+const NEED_POOL       = ['hug','play','snack','feed'];
+
+// ?嚙?嚙??嚙賜車嚙??嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+const EGG_TYPES = [
+  { name:'SWEET',  desc:'CHICK',  fill:'#fffce0', stroke:'#d49020', deco:'none'  },
+  { name:'STAR',   desc:'CAT',    fill:'#f0d0ff', stroke:'#c060a8', deco:'stars' },
+  { name:'SKY',    desc:'BEAR',   fill:'#e8d0b0', stroke:'#a06828', deco:'spots' },
+];
+// ?秘?拚??身摰?(initial:??g, meal:甇??憓?g, snack:暺?憓?g, obese:?亥??瑼蜢)
+const WEIGHT_CFG = [
+  { initial:30,   meal:8,   snack:5,   obese:250   },  // 0=?? (?砍?)
+  { initial:300,  meal:100, snack:60,  obese:6000  },  // 1=鞎 (?＊蝷?kg)
+  { initial:2000, meal:500, snack:300, obese:40000 },  // 2=撠? (?＊蝷?kg)
+];
+function fmtWeight(g){ return g>=1000 ? (g/1000).toFixed(1)+'kg' : g+'g'; }
+
+// ?嚙?嚙?蝎橘蕭?憿 ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+// 0=?嚙踝蕭?  1=瘛梯  2=銝剛  3=瘛∟  4=??
+const PAL = ['','#8b3060','#d4689a','#f0b0d0','#ffffff'];
+// Per-type palettes: 0=chick(yellow), 1=cat(pink-purple), 2=bear(brown)
+const PET_PAL = [
+  ['','#7a5000','#d49020','#ffe880','#ffffff'],
+  ['','#6a2060','#c060a8','#f8c0e8','#ffffff'],
+  ['','#5a3010','#a06828','#e8b870','#ffeecc'],
+];
+// LCD ?嚙賣嚗漁/?嚙踝蕭?
+const LCD_LIGHT = '#fde8f0';
+const LCD_DARK  = '#4a2038';
+
+// ?嚙?嚙?蝎橘蕭?嚙?4?嚙踝蕭?4甈蕭??嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+const SP = {
+  // ?嚙踝蕭??嚙踝蕭?蝎蕭?
+  egg:[
+    '00001111110000',
+    '00134444431100',
+    '01344444443110',
+    '13444444444311',
+    '13444444444311',
+    '13444444444311',
+    '13443344444311',
+    '13433344444311',
+    '13444444444311',
+    '13444444444311',
+    '01344444443110',
+    '01134444431100',
+    '00011111110000',
+    '00000000000000',
+  ],
+  // Baby嚗蕭??嚙踝蕭?嚗之?嚙踝蕭?
+  baby:[
+    '00001111110000',
+    '00122222221100',
+    '01222222222110',
+    '01221221122110',
+    '01221221122110',
+    '01222222222110',
+    '01223212322110',
+    '01222222222110',
+    '00112222211100',
+    '00001221000000',
+    '00001221000000',
+    '00001010000000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // Child good嚗蕭??嚙踝蕭?嚙?
+  child_good:[
+    '01100000001100',
+    '11210000012110',
+    '01222222222110',
+    '01221221122110',
+    '01221221122110',
+    '01222222222110',
+    '01223212322110',
+    '01222222222110',
+    '00112222211100',
+    '00011222110000',
+    '00011022110000',
+    '00001010100000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // Child bad嚗蝎橘蕭???
+  child_bad:[
+    '00001111110000',
+    '00122222221100',
+    '01222222222110',
+    '01221122211110',
+    '01222222221110',
+    '01222222222110',
+    '01222112222110',
+    '01222222222110',
+    '00112222211100',
+    '00011222110000',
+    '00011022110000',
+    '00001010100000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // Teen good嚗蕭??嚙踝蕭?嚙?
+  teen_good:[
+    '00100000000100',
+    '01230000003210',
+    '00122222221100',
+    '01222222222110',
+    '01221221122110',
+    '01221221122110',
+    '01222222222110',
+    '01222212222110',
+    '00112222211100',
+    '00011222110000',
+    '00011022110000',
+    '00001010100000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // Teen bad嚗?嚙賡銝蕭?嚙?
+  teen_bad:[
+    '01001010010000',
+    '11101010101100',
+    '01222222222110',
+    '01222222222110',
+    '01221122211110',
+    '01222222221110',
+    '01222112222110',
+    '01222222222110',
+    '00112222211100',
+    '00011222110000',
+    '00011022110000',
+    '00001010100000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // Adult good嚗?嚙賡憌整之嚙?
+  adult_good:[
+    '00001310000000',
+    '00013131300000',
+    '00131313130000',
+    '00001310000000',
+    '00122222221100',
+    '01222222222110',
+    '01221221122110',
+    '01221221122110',
+    '01222222222110',
+    '01223212322110',
+    '00112222211100',
+    '00011222110000',
+    '00011022110000',
+    '00001010100000',
+  ],
+  // Adult bad嚗蕭??嚙賬蕭??嚙踝蕭?
+  adult_bad:[
+    '00001111110000',
+    '00122222221100',
+    '01222222222110',
+    '01222112211110',
+    '01222112211110',
+    '01222222222110',
+    '01222222222110',
+    '01222112222110',
+    '00222222222200',
+    '00012222100000',
+    '00011222110000',
+    '00011022110000',
+    '00001010100000',
+    '00000000000000',
+  ],
+  // Senior good嚗蕭??嚙質蝯蕭??嚙踝蕭?
+  senior_good:[
+    '00001310100000',
+    '00001111110000',
+    '00122222221100',
+    '01222222222110',
+    '01221221122110',
+    '01223323332110',
+    '01222222222110',
+    '01223212322110',
+    '00122222221100',
+    '00012222100000',
+    '00001221100000',
+    '00001010100000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // Senior bad嚗?嚙賬瘀蕭???
+  senior_bad:[
+    '00001111110000',
+    '00122222221100',
+    '01222222222110',
+    '01222222222110',
+    '01221122211110',
+    '01222222221110',
+    '01222222222110',
+    '01221212122110',
+    '00122222221100',
+    '00012222100000',
+    '00001221100000',
+    '00001010100000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // 撉瘀蕭??嚙踝蕭?甇颱滿嚙?
+  skull:[
+    '00001111110000',
+    '00122222221100',
+    '01244422244110',
+    '01241111442110',
+    '01244422244110',
+    '01222222222110',
+    '01221222122110',
+    '01222222222110',
+    '00011001001000',
+    '00011011011000',
+    '00011001001000',
+    '00001111110000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // 憭拐蝙嚗蕭?敹蕭???
+  angel:[
+    '00013111310000',
+    '00131111131000',
+    '00013111310000',
+    '00001111110000',
+    '00122222221100',
+    '01222222222110',
+    '01221221122110',
+    '01221221122110',
+    '01222212222110',
+    '10122222221001',
+    '10012222210001',
+    '00011222110000',
+    '00001010100000',
+    '00000000000000',
+  ],
+  // 靘蹂噶嚗?嚙質?嚙踝蕭?
+  poop:[
+    '00001100000000',
+    '00012120000000',
+    '00121212000000',
+    '00011110000000',
+    '00111111000000',
+    '01111111100000',
+    '01111111100000',
+    '00111111000000',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // ?嚙質嚗噶靘輯郎?嚙賣郭瘚迎蕭?
+  stink:[
+    '00200200000000',
+    '02020200000000',
+    '00200200000000',
+    '00000000020200',
+    '00000002020200',
+    '00000000020200',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // sick
+  sick:[
+    '11001100',
+    '10100101',
+    '10100101',
+    '11001100',
+  ],
+  // ===== CHICK sprites (eggType=0, PAL: 1=dark-brown,2=orange-beak,3=yellow,4=white) =====
+  // chick_baby: round fluffy newborn, big eye, wide orange beak front-center
+  chick_baby:[
+    '00000333000000',  // head dome
+    '00033333330000',  // head
+    '00333333333000',  // head full
+    '03333333333300',  // face top
+    '03331133133300',  // eyes: 1=dark pupil
+    '03333333333300',  // face
+    '03332222223300',  // beak: 2=orange wide
+    '03333222333300',  // beak tip
+    '03333333333300',  // chin
+    '00333333333300',  // body
+    '00033333330000',  // lower
+    '00001212100000',  // feet
+    '00000000000000',
+    '00000000000000',
+  ],
+  // chick_good: grown chick, wings flapping out, big happy beak
+  chick_good:[
+    '30000333000003',  // wing tips + head tuft
+    '33033333330330',  // wings + head
+    '03333333333300',  // head full (wings tucked)
+    '03333333333300',  // face
+    '03331133133300',  // eyes
+    '03333333333300',  // face
+    '03332222223300',  // beak wide open
+    '03333222333300',  // beak tip
+    '03333333333300',  // body
+    '33333333333330',  // wing spread full
+    '03333333333300',  // lower body
+    '00333333333000',
+    '00001212100000',  // feet
+    '00000000000000',
+  ],
+  // chick_bad: unhappy chick, droopy eyes, frown beak
+  chick_bad:[
+    '00000333000000',
+    '00033333330000',
+    '00333333333000',
+    '03333333333300',
+    '03311133113300',  // droopy eyes
+    '03333333333300',
+    '03333232323300',  // frown beak
+    '03332223333300',
+    '03333333333300',
+    '00333333333300',
+    '00033333330000',
+    '00001212100000',
+    '00000000000000',
+    '00000000000000',
+  ],
+  // ===== CAT sprites (eggType=1, PAL: 1=dark-purple,2=mid-pink,3=light-pink,4=white) =====
+  // cat_baby: kitten ??very tall pointy ears, big eyes, W-mouth
+  cat_baby:[
+    '01000000000100',  // ear tips (tall)
+    '11200000002110',  // ear broad + inner(2)
+    '01222000222100',  // ear base
+    '01222222222100',  // head top
+    '12244222442210',  // eyes: 4=white, inside 1=pupil
+    '12224122412210',  // pupils center
+    '12222222222210',  // cheeks
+    '12224444422210',  // muzzle white area
+    '12222141222210',  // nose(1) + W-mouth
+    '01122222211100',  // chin
+    '00012222210000',  // neck
+    '00001221000000',  // feet
+    '00000000000000',
+    '00000000000000',
+  ],
+  // cat_good: happy cat, tall ears, whisker dots, curling tail
+  cat_good:[
+    '01000000000100',  // ear tips
+    '11200000002110',
+    '01222000222100',
+    '01222222222100',
+    '12244222442210',  // big eyes
+    '12224122412210',
+    '12222222222210',
+    '12224444422210',  // white muzzle
+    '12221141112210',  // whisker dots + nose + smile
+    '01122222211100',
+    '11122222211110',  // body
+    '11233333221110',
+    '01213333132100',
+    '00001121000000',  // tail curl
+  ],
+  // cat_bad: grumpy cat, slanted brows, flat frown
+  cat_bad:[
+    '01000000000100',
+    '11200000002110',
+    '01222000222100',
+    '01222222222100',
+    '12211122211210',  // angry slanted eyes
+    '12212222122210',
+    '12222222222210',
+    '12224444422210',
+    '12222121222210',  // frown
+    '01122222211100',
+    '11122222211110',
+    '11233333221110',
+    '01213333132100',
+    '00000000000000',
+  ],
+// ===== BEAR sprites (eggType=2, PAL: 1=dark-brown,2=med-brown,3=tan,4=cream-snout) =====
+  // bear_baby: round cub, half-circle ears on sides, big cream snout
+  bear_baby:[
+    '01110000011100',  // round ear tops
+    '13310000013310',  // ear (3=inner tan)
+    '01333333333100',  // head top
+    '13333333333130',  // face full width
+    '13313333133130',  // eyes: 1=pupil
+    '13333333333130',  // face
+    '13344444443130',  // snout start (4=cream)
+    '13344144443130',  // snout + 1=nose center
+    '13344444443130',  // snout bottom
+    '01133333311100',  // chin
+    '00013333310000',  // neck
+    '00001313100000',  // feet
+    '00000000000000',
+    '00000000000000',
+  ],
+  // bear_good: happy bear, smile inside snout, wide body
+  bear_good:[
+    '01110000011100',
+    '13310000013310',
+    '01333333333100',
+    '13333333333130',
+    '13313333133130',  // bright eyes
+    '13333333333130',
+    '13344444443130',  // cream snout
+    '13344144443130',  // nose
+    '13341444413130',  // smile: 1s at snout corners
+    '01133333311100',  // body
+    '11333333331110',
+    '11334433331110',  // tummy (4=light belly)
+    '01123333211100',
+    '00011331100000',  // feet pair
+  ],
+  // bear_bad: sad bear, droopy eyes, pout on snout
+  bear_bad:[
+    '01110000011100',
+    '13310000013310',
+    '01333333333100',
+    '13333333333130',
+    '13311133113130',  // sad eyes slant inward
+    '13333333333130',
+    '13344444443130',
+    '13344144443130',
+    '13314444431130',  // frown: corners down
+    '01133333311100',
+    '11333333331110',
+    '11334433331110',
+    '01123333211100',
+    '00011331100000',
+  ],
+};
+
+const S = 10; // 瘥蕭?蝝憭批嚙?4*10=140px嚙?
+
+function activePAL(){
+  if(pet&&pet.eggType!=null&&!pet.dead&&pet.stage!=='egg')return PET_PAL[pet.eggType]||PAL;
+  return PAL;
+}
+function drawSprite(key, dx, dy, scale){
+  scale = scale||S;
+  const rows=SP[key];
+  if(!rows)return;
+  const pal=activePAL();
+  for(let r=0;r<rows.length;r++){
+    const row=rows[r];
+    for(let c=0;c<row.length;c++){
+      const v=parseInt(row[c]);
+      if(!v||!pal[v])continue;
+      ctx.fillStyle=pal[v];
+      ctx.fillRect(dx+c*scale,dy+r*scale,scale,scale);
+    }
+  }
+}
+
+// ?嚙?嚙?canvas ?嚙踝蕭?嚗ress Start 2P嚗蕭??嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+// sc: 1=7px  2=10px  3=14px  4=18px嚗蕭?朣隞蕭??嚙賡◢?嚙踝蕭?
+const SC_PX=[0,7,10,14,18];
+function drawText(str,px,py,sc,col){
+  sc=sc||1;col=col||'#6b1a40';
+  const sz=SC_PX[sc]||sc*6;
+  ctx.save();
+  ctx.font=sz+'px "Press Start 2P",monospace';
+  ctx.fillStyle=col;
+  ctx.textBaseline='top';
+  ctx.fillText(str,px,py);
+  ctx.restore();
+}
+function textW(str,sc){
+  sc=sc||1;
+  const sz=SC_PX[sc]||sc*6;
+  ctx.save();
+  ctx.font=sz+'px "Press Start 2P",monospace';
+  const w=ctx.measureText(str).width;
+  ctx.restore();
+  return w;
+}
+// 蝵桐葉頛
+function drawTextC(str,cy,sc,col){
+  const w=textW(str,sc);
+  drawText(str,Math.floor((W-w)/2),cy,sc,col);
+}
+
+// ?嚙?嚙??嚙?嚙賜嚙??嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+let pet = null;
+
+function newPet(){
+  return {
+    stage:'egg',      // egg?嚙箭aby?嚙箱hild?嚙緣een?嚙窮dult?嚙編enior
+    ageMin:0,
+    hunger:2,         // 0=憌? 4=擗?
+    happy:2,
+    weight:0,         // 摮萄??? WEIGHT_CFG ????
+    discipline:0,     // 0-4
+    sick:false,
+    sickPresses:0,    // ?嚙踝蕭?閬蕭?撟暹活??
+    poop:0,           // 靘蹂噶?嚙踝蕭? 0-3
+    poopWarn:false,   // 靘蹂噶霅佗蕭??嚙??
+    poopWarnAge:0,    // 霅佗蕭?蝝荔蕭??嚙踝蕭?
+    callAttn:false,   // 鈭殷蕭?
+    fakeAttn:false,   // ?嚙賢?嚙踝蕭?蝝敺蕭??嚙踝蕭?
+    careMiss:0,
+    hungerAcc:0,
+    happyAcc:0,
+    poopAcc:0,
+    sickAcc:0,
+    fakeAcc:0,
+    sleeping:false,
+    manualSleep:false,
+    sleepStartMs:0,
+    stamina:2,        // 0-4嚗???
+    staminaAcc:0,     // 擃?銵唳?蝝舐?
+    staminaRestAcc:0, // ?∟死?Ｗ儔蝝舐?
+    tiredAcc:0,       // 擃?=0???蝝舐???
+    starveAcc:0,      // hunger=4 ??蝝舐?嚗?甇餉???
+    lonely:4,         // 0=摮文 4=皛輯雲
+    lonelyAcc:0,      // 摮斤銵唳?蝝舐?
+    lonelySickAcc:0,  // lonely=0 ??閮?
+    dirty:0,          // 0=銋暹楊 4=敺?
+    dirtyAcc:0,       // 擃情蝝舐?
+    dirtySickAcc:0,   // dirty=4 ??閮?
+    need:null,        // 當下心情需求 'hug'|'play'|'snack'|null
+    needAcc:0,        // 需求計時
+    needQueue:[],     // 待滿足需求佇列
+    variant:'good',
+    dead:false,
+    angel:false,
+    lastTs:Date.now(),
+    eggType:0,
+  };
+}
+
+const SAVE='tamagotchi_v2';
+const save=()=>{
+  if(!pet)return;
+  try{localStorage.setItem(SAVE,JSON.stringify({...pet,lastTs:Date.now()}));}catch(e){}
+};
+function loadPet(){
+  try{
+    const raw=localStorage.getItem(SAVE);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(!d||!d.stage)return false;
+    pet=d;
+    return true;
+  }catch(e){return false;}
+}
+
+// ?嚙?嚙?UI ?嚙???嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+const MENUS=['food','toilet','bath','play','hug','exercise','meds','light','discipline','status'];
+let menuIdx=0, menuOpen=false, subIdx=0;
+let showStat=false;
+let lightMenu=false;
+let playState=null;
+let feedAnim=null; // {snack:bool, startMs, durationMs, frame}
+let cleanAnim=null; // {startMs, durationMs, frame}
+let refuseAnim=null; // {startMs} ?????
+let hugAnim=null;      // {startMs} ?急敹耦?
+let bathAnim=null;     // {startMs} 瘣鴃瘜⊥部?
+let exerciseAnim=null; // {startMs} ???
+let animF=0, blinkOn=true, blinkT=0;
+let shopPhase=false, shopIdx=0;
+let eggShake={active:false,frames:0,next:80};
+let eggRafId=null;
+let sleepRafId=null;
+let idleRafId=null;
+
+function startIdleRaf(){
+  if(idleRafId)return;
+  function loop(){
+    // ??頝?瘝? pet嚗?憪?ａ????? pet 銝??迤撣?
+    if(pet&&(pet.dead||pet.sleeping||pet.stage==='egg'||feedAnim||cleanAnim)){
+      idleRafId=null;return;
+    }
+    render();
+    idleRafId=requestAnimationFrame(loop);
+  }
+  idleRafId=requestAnimationFrame(loop);
+}
+function stopIdleRaf(){
+  if(idleRafId){cancelAnimationFrame(idleRafId);idleRafId=null;}
+}
+
+// RAF 撽????嚗????????嚗?
+function startEggRaf(){
+  if(eggRafId)return;
+  function loop(){
+    if(!pet||pet.stage!=='egg'){eggRafId=null;return;}
+    // ????
+    eggShake.next--;
+    if(eggShake.next<=0&&!eggShake.active){
+      const pct2=Math.min(1,pet.ageMin/3);
+      eggShake.active=true;
+      eggShake.frames=Math.floor(12+pct2*8);
+      const base=Math.max(30,Math.floor(400-pct2*360));
+      eggShake.next=base+Math.floor(Math.random()*base*1.2);
+      sfx('click');
+    }
+    if(eggShake.active){
+      eggShake.frames--;
+      if(eggShake.frames<=0) eggShake.active=false;
+    }
+    render();
+    eggRafId=requestAnimationFrame(loop);
+  }
+  eggRafId=requestAnimationFrame(loop);
+} // ?嚙踝蕭??嚙??
+
+function startSleepRaf(){
+  if(sleepRafId)return;
+  // 睡覺時讓燈光圖標獲得駐點
+  menuIdx=MENUS.indexOf('light');
+  renderIcons();
+  function loop(){
+    if(!pet||!pet.sleeping){sleepRafId=null;return;}
+    render();
+    sleepRafId=requestAnimationFrame(loop);
+  }
+  sleepRafId=requestAnimationFrame(loop);
+}
+function stopSleepRaf(){
+  if(sleepRafId){cancelAnimationFrame(sleepRafId);sleepRafId=null;}
+}
+
+// ?嚙?嚙??嚙賡?嚙賢潘蕭?ageDays嚗蕭??嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+const STAGE_DAYS={baby:0,child:1,teen:3,adult:6,senior:10};
+const NEXT_STAGE={egg:'baby',baby:'child',child:'teen',teen:'adult',adult:'senior'};
+
+// ?嚙?嚙?憭蕭??嚙賣 ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+const isSleepTime=()=>{const h=new Date().getHours();return h>=SLEEP_START||h<SLEEP_END;};
+
+// ?嚙?嚙??嚙踝蕭?鋆蕭? ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+function applyOffline(){
+  if(!pet||pet.dead||pet.stage==='egg')return;
+  const now=Date.now();
+  const raw=now-(pet.lastTs||now);
+  if(raw<=0){pet.lastTs=now;return;}
+  // 頞蕭? grace ?嚙踝蕭?嚙?
+  const eff=Math.max(0,raw-OFFLINE_GRACE);
+  if(eff<=0){pet.lastTs=now;return;}
+  const gm=(eff/1000/60)*0.6;
+  pet.ageMin+=gm;
+  pet.hungerAcc+=gm;
+  const hT=Math.floor(pet.hungerAcc/HUNGER_DECAY);
+  pet.hungerAcc%=HUNGER_DECAY;
+  pet.hunger=Math.min(4,pet.hunger+hT);
+  pet.happyAcc+=gm;
+  const aT=Math.floor(pet.happyAcc/HAPPY_DECAY);
+  pet.happyAcc%=HAPPY_DECAY;
+  pet.happy=Math.max(0,pet.happy-aT);
+  recalcAttn();
+  pet.lastTs=now;
+}
+
+// ?嚙?嚙?嚙?Tick ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+function tick(){
+  animF++;
+  blinkT++;
+  if(blinkT>=14){blinkOn=!blinkOn;blinkT=0;}
+
+  if(!pet){render();return;}
+  if(pet.dead){animF%2===0&&save();render();return;}
+
+  // ??摮拙?
+  if(pet.stage==='egg'){
+    pet.ageMin+=mpt();
+    if(pet.ageMin>=3){
+      // 蝣箔? progress bar ? 100%嚗?摮萄?
+      pet.ageMin=3;
+      if(eggRafId){cancelAnimationFrame(eggRafId);eggRafId=null;}
+      render(); // ?餅??急遛餈?
+      sfx('hatch');
+      setTimeout(()=>{
+        hatch();
+        render();renderHUD();
+      },600);
+    } else { startEggRaf(); save(); }
+    return;
+  }
+
+  if(pet.stage!=='baby'){
+    if(isSleepTime()) { if(!pet.sleeping){ pet.sleeping=true; startSleepRaf(); } }  // ?芸??亦
+    else if(pet.sleeping&&!pet.manualSleep){ pet.sleeping=false; stopSleepRaf(); startIdleRaf(); } // ?拐??芸???
+  }
+  // ??撠嚗???閮?????擃??遛 ??韏瑕?嚗???畾萇??拍嚗?
+  if(pet.manualSleep&&pet.sleeping){
+    const elapsed=pet.sleepStartMs?Date.now()-pet.sleepStartMs:0;
+    const timerDone = elapsed>=180000;
+    // 擃?皛輯絲摨??喳?閬30蝘?蝞憌踝??踹??犖銝停頝唾絲靘?
+    const staminaFull = pet.stamina>=4 && elapsed>=30000;
+    if(timerDone||staminaFull){
+      // 手動睡覺結束，補滿3格體力
+      if(timerDone) pet.stamina=Math.min(4,pet.stamina+3);
+      pet.sleeping=false;pet.manualSleep=false;pet.sleepStartMs=0;stopSleepRaf();sfx('yawn');
+      render();renderHUD();startIdleRaf();
+    }
+  }
+
+  const sleeping=pet.sleeping;
+  if(!sleeping){
+    const m=mpt();
+    pet.ageMin+=m;
+    // 擃?銵唳?
+    pet.staminaAcc+=m;
+    if(pet.staminaAcc>=STAMINA_DECAY){
+      pet.staminaAcc-=STAMINA_DECAY;
+      if(pet.stamina>0) pet.stamina--;
+    }
+    // 擃?=0 蝬脫?∴?蝝舐??脣?閮?
+    if(pet.stamina<=0){
+      // 體力歸零 → 強制入睡（自動睡覺補體力）
+      if(!pet.sleeping){
+        pet.sleeping=true;
+        pet.manualSleep=false;
+        pet.sleepStartMs=0;
+        startSleepRaf();
+        sfx('yawn');
+        render();renderHUD();
+      }
+      pet.tiredAcc+=m;
+      if(!pet.sick&&pet.tiredAcc>=TIRED_SICK_TTL){
+        pet.tiredAcc=0;
+        pet.sick=true;
+        pet.sickPresses=1+Math.floor(Math.random()*2);
+        recalcAttn();
+      }
+    } else {
+      pet.tiredAcc=0;
+    }
+
+    // 摮斤銵唳?
+    pet.lonelyAcc+=m;
+    if(pet.lonelyAcc>=LONELY_DECAY){
+      pet.lonelyAcc-=LONELY_DECAY;
+      if(pet.lonely>0) pet.lonely--;
+      if(pet.lonely<=0){ pet.callAttn=true; pet.careMiss++; }
+    }
+    if(pet.lonely<=0){
+      pet.lonelySickAcc+=m;
+      if(!pet.sick&&pet.lonelySickAcc>=LONELY_SICK_TTL){
+        pet.lonelySickAcc=0;
+        pet.sick=true; pet.sickPresses=1+Math.floor(Math.random()*2);
+        recalcAttn();
+      }
+    } else { pet.lonelySickAcc=0; }
+
+    // 擃情蝝舐?
+    pet.dirtyAcc+=m;
+    if(pet.dirtyAcc>=DIRTY_ACCUM){
+      pet.dirtyAcc-=DIRTY_ACCUM;
+      if(pet.dirty<4) pet.dirty++;
+      if(pet.dirty>=3){ pet.callAttn=true; }
+    }
+    if(pet.dirty>=4){
+      pet.dirtySickAcc+=m;
+      if(!pet.sick&&pet.dirtySickAcc>=DIRTY_SICK_TTL){
+        pet.dirtySickAcc=0;
+        pet.sick=true; pet.sickPresses=1+Math.floor(Math.random()*2);
+        recalcAttn();
+      }
+    } else { pet.dirtySickAcc=0; }
+
+    // 憌ａ?
+    pet.hungerAcc+=m;
+    if(pet.hungerAcc>=HUNGER_DECAY){
+      pet.hungerAcc-=HUNGER_DECAY;
+      if(pet.hunger<4){pet.hunger++;}
+      if(pet.hunger>=4){pet.callAttn=true;pet.careMiss++;}
+    }
+    // 擗香閮?嚗unger=4 蝝舐?頞? STARVE_TTL ???撠梢?甇?
+    if(pet.hunger>=4){
+      pet.starveAcc+=m;
+      if(pet.starveAcc>=STARVE_TTL){die(false);return;}
+    } else {
+      pet.starveAcc=0;
+    }
+
+    // 敹恬蕭?
+    pet.happyAcc+=m;
+    if(pet.happyAcc>=HAPPY_DECAY){
+      pet.happyAcc-=HAPPY_DECAY;
+      if(pet.happy>0){pet.happy--;}
+      if(pet.happy<=0){pet.callAttn=true;pet.careMiss++;}
+    }
+
+    // 靘蹂噶瘚蕭?
+    pet.poopAcc+=m;
+    if(!pet.poopWarn&&pet.poopAcc>=POOP_INTERVAL&&pet.poop<3){
+      pet.poopAcc=0;
+      pet.poopWarn=true;
+      pet.poopWarnAge=0;
+      pet.callAttn=true;
+      sfx('alert');
+    }
+    if(pet.poopWarn){
+      pet.poopWarnAge+=m;
+      if(pet.poopWarnAge>=POOP_WARN_TTL){
+        // ?嚙踝蕭??嚙踝蕭?
+        pet.poopWarn=false;
+        pet.poopWarnAge=0;
+        pet.poop=Math.min(pet.poop+1,3);
+        // ?嚙賭噶靘踹停?嚙踝蕭??嚙踝蕭???
+        if(pet.poop>=2&&!pet.sick){
+          pet.sick=true;
+          pet.sickPresses=1+Math.floor(Math.random()*2);
+        }
+        recalcAttn();
+      }
+    }
+
+    // ?嚙踝蕭?閮蕭?
+    if(pet.sick){
+      pet.sickAcc+=m;
+      if(pet.sickAcc>=240){die(false);return;}
+    }else{
+      pet.sickAcc=0;
+    }
+
+    // 擃蕭??嚙踝蕭??嚙踝蕭?
+    if(pet.weight>WEIGHT_CFG[pet.eggType||0].obese&&!pet.sick&&Math.random()<0.003){
+      pet.sick=true;
+      pet.sickPresses=1+Math.floor(Math.random()*2);
+      recalcAttn();
+    }
+
+    // ?嚙賢?嚙踝蕭?蝝敺蕭??嚙踝蕭?
+    pet.fakeAcc+=m;
+    if(!pet.fakeAttn&&!pet.callAttn&&pet.fakeAcc>180+Math.random()*120){
+      pet.fakeAcc=0;
+      pet.fakeAttn=true;
+      pet.callAttn=true;
+      sfx('alert');
+    }
+
+    // ?嚙賡
+    // 心情需求佇列系統
+    // 非法值防護（舊存檔或bug）
+    if(pet.need&&!NEED_POOL.includes(pet.need))pet.need=null;
+    // needAcc 無論有無需求都在計時
+    pet.needAcc+=m;
+    if(pet.need){
+      // 需求超時 → 過期，清空等待下輪
+      if(pet.needAcc>=NEED_INTERVAL){
+        pet.needAcc=0;
+        pet.need=null;
+        pet.needQueue=[];
+      }
+    } else {
+      // 冷卻期滿 → 從佇列取出（或先生成）
+      if(pet.needAcc>=NEED_INTERVAL){
+        pet.needAcc=0;
+        if(pet.needQueue.length===0){
+          const pool=NEED_POOL.filter(n=>!(n==='snack'&&pet.hunger>=3)&&!(n==='feed'&&pet.hunger===0));
+          pet.needQueue.push(pool[Math.floor(Math.random()*pool.length)]||'hug');
+        }
+        pet.need=pet.needQueue.shift();
+      }
+    }
+    checkGrowth();
+  } else {
+    // ?∟死銝剜敺拚???
+    const m=mpt();
+    pet.staminaRestAcc+=m;
+    if(pet.staminaRestAcc>=STAMINA_RESTORE){
+      pet.staminaRestAcc-=STAMINA_RESTORE;
+      if(pet.stamina<4){ pet.stamina++; renderHUD(); }
+    }
+  }
+
+  save();
+  render();
+  renderHUD();
+}
+
+function hatch(){
+  pet.stage='baby';
+  pet.ageMin=0;
+  pet.hunger=2;pet.happy=2;pet.stamina=3;
+  pet.weight=WEIGHT_CFG[pet.eggType||0].initial;
+  pet.lonely=4;pet.lonelyAcc=0;pet.lonelySickAcc=0;
+  pet.dirty=0;pet.dirtyAcc=0;pet.dirtySickAcc=0;
+  pet.staminaAcc=0;pet.staminaRestAcc=0;pet.tiredAcc=0;
+  sfx('hatch');save();
+  renderHUD();
+  startIdleRaf();
+}
+
+function checkGrowth(){
+  const ageDays=pet.ageMin/(60*8 );
+  const next=NEXT_STAGE[pet.stage];
+  if(!next)return;
+  const need=STAGE_DAYS[next];
+  if(need===undefined)return;
+  if(ageDays>=need){
+    // Senior 憯賢嚗憿批末 ??+8?憭抬??折“撌???+3?憭?
+    if(pet.stage==='senior'){
+      const bonusDays = pet.variant==='good' ? 8 : 3;
+      if(ageDays>=STAGE_DAYS.senior+bonusDays){ die(true); return; }
+    }
+    if(pet.stage!=='senior'){
+      const good=pet.careMiss<=CARE_MISS_MAX;
+      pet.variant=good?'good':'bad';
+      pet.stage=next;
+      pet.careMiss=0;
+      sfx('evolve');
+    }
+  }
+}
+
+function die(natural){
+  pet.dead=true;
+  pet.angel=natural;
+  sfx('dead');
+  save();
+  render();
+}
+
+function recalcAttn(){
+  pet.callAttn=(pet.hunger>=4||pet.happy<=0||pet.sick||pet.poop>0||pet.poopWarn||pet.fakeAttn||pet.lonely<=0||pet.dirty>=3);
+}
+
+// ?嚙?嚙??嚙賡“?嚙踝蕭? ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+function actFeed(snack){
+  if(!pet||pet.dead||pet.sleeping||pet.sick)return;
+  const wcfg=WEIGHT_CFG[pet.eggType||0];
+  if(snack){
+    if(pet.need==='snack'){pet.need=null;pet.needAcc=0;pet.needQueue=[];if(pet.happy<4)pet.happy++;} // 滿足零食需求
+    if(pet.hunger>0) pet.hunger--; // 點心降1格飢餓（但加體重懲罰）
+    pet.weight+=wcfg.snack;
+    // 擗???敹??亙熒銝末嚗?????憒?敺?嚗unger>=3嚗???憭抒?????
+    if(pet.hunger>=2){
+      pet.weight+=wcfg.snack;
+      if(pet.hunger>=3&&!pet.sick&&Math.random()<0.35){
+        pet.sick=true;
+        pet.sickPresses=1+Math.floor(Math.random()*2);
+        recalcAttn();
+      }
+    }
+  } else {
+    if(pet.need==='feed'){pet.need=null;pet.needAcc=0;pet.needQueue=[];if(pet.happy<4)pet.happy++;} // 滿足白飯需求
+    if(pet.hunger>0){pet.hunger--;pet.weight+=wcfg.meal;}
+    // 吃正餐加速排便時鐘
+    pet.poopAcc+=POOP_INTERVAL*0.25;
+  }
+  // 吃零食也稍微加速
+  if(snack) pet.poopAcc+=POOP_INTERVAL*0.15;
+  sfx('eat');
+  recalcAttn();save();
+  feedAnim={snack:snack,startMs:performance.now(),durationMs:5000,frame:0};
+  menuOpen=false;
+  render();renderHUD();
+  // ??RAF 頝??怎?啁???
+  function rafFeed(now){
+    if(!feedAnim)return;
+    feedAnim.frame++;
+    const elapsed=now-feedAnim.startMs;
+    if(elapsed>=feedAnim.durationMs){ feedAnim=null; render(); startIdleRaf(); return; }
+    render();
+    requestAnimationFrame(rafFeed);
+  }
+  requestAnimationFrame(rafFeed);
+}
+function actMeds(){
+  if(!pet||pet.dead)return;
+  if(!pet.sick){
+    // ?亙熒??蝯??伐???
+    refuseAnim={startMs:performance.now()};
+    sfx('scold');
+    menuOpen=false;
+    render();
+    return;
+  }
+  pet.sickPresses--;
+  if(pet.sickPresses<=0){
+    pet.sick=false;pet.sickAcc=0;pet.sickPresses=0;
+    sfx('meds');
+  }else{
+    sfx('click');
+  }
+  recalcAttn();save();render();renderHUD();
+}
+function actHug(){
+  if(!pet||pet.dead||pet.sleeping)return;
+  const hasNeed=pet.need==='hug';
+  const accepted=hasNeed||Math.random()<0.5; // 有需求必接受，否則50%機率
+  if(hasNeed){pet.need=null;pet.needAcc=0;pet.needQueue=[];}
+  if(accepted){
+    pet.lonely=Math.min(4,pet.lonely+2);
+    if(pet.happy<4)pet.happy++;
+    sfx('win');
+    recalcAttn();save();
+    hugAnim={startMs:performance.now()};
+    menuOpen=false;
+    render();renderHUD();
+    function rafHug(now){
+      if(!hugAnim)return;
+      if(now-hugAnim.startMs>=1800){hugAnim=null;render();startIdleRaf();return;}
+      render();
+      requestAnimationFrame(rafHug);
+    }
+    requestAnimationFrame(rafHug);
+  } else {
+    // 寵物心情好才願意被抱，否則搖頭拒絕
+    sfx('scold');
+    menuOpen=false;
+    refuseAnim={startMs:performance.now()};
+    render();
+    function rafRefuse(now){
+      if(!refuseAnim)return;
+      render();
+      requestAnimationFrame(rafRefuse);
+    }
+    requestAnimationFrame(rafRefuse);
+  }
+}
+function actBath(){
+  if(!pet||pet.dead||pet.sleeping)return;
+  const wasDirty=pet.dirty>=2; // 真的髒才算有需求
+  pet.dirty=0; pet.dirtyAcc=0; pet.dirtySickAcc=0;
+  if(wasDirty&&pet.happy<4)pet.happy++; // 幫牠洗乾淨加快樂
+  sfx('clean');
+  recalcAttn();save();
+  bathAnim={startMs:performance.now()};
+  menuOpen=false;
+  render();renderHUD();
+  function rafBath(now){
+    if(!bathAnim)return;
+    if(now-bathAnim.startMs>=2200){bathAnim=null;render();renderHUD();startIdleRaf();return;}
+    render();
+    requestAnimationFrame(rafBath);
+  }
+  requestAnimationFrame(rafBath);
+}
+function actExercise(){
+  if(!pet||pet.dead||pet.sleeping||pet.sick)return;
+  if(pet.stamina<=0){sfx('scold');return;} // 憭芰敞銝??
+  const wcfg=WEIGHT_CFG[pet.eggType||0];
+  pet.weight=Math.max(wcfg.initial, pet.weight-wcfg.meal*2);
+  pet.stamina=Math.max(0,pet.stamina-1);
+  if(pet.happy>0)pet.happy--;  // ????蝝?
+  pet.dirtyAcc+=DIRTY_ACCUM*0.5; // exercise adds dirt
+  sfx('click');
+  recalcAttn();save();
+  exerciseAnim={startMs:performance.now()};
+  menuOpen=false;
+  render();renderHUD();
+  function rafEx(now){
+    if(!exerciseAnim)return;
+    if(now-exerciseAnim.startMs>=3000){exerciseAnim=null;render();startIdleRaf();return;}
+    render();
+    requestAnimationFrame(rafEx);
+  }
+  requestAnimationFrame(rafEx);
+}
+function actToilet(){
+  if(!pet||pet.dead)return;
+  pet.poopWarn=false;pet.poopWarnAge=0;
+  pet.poop=0;
+  recalcAttn();sfx('clean');save();
+  cleanAnim={startMs:performance.now(),durationMs:4000,frame:0};
+  function rafClean(now){
+    if(!cleanAnim)return;
+    cleanAnim.frame++;
+    const elapsed=now-cleanAnim.startMs;
+    if(elapsed>=cleanAnim.durationMs){cleanAnim=null;render();renderHUD();startIdleRaf();return;}
+    render();
+    requestAnimationFrame(rafClean);
+  }
+  requestAnimationFrame(rafClean);
+}
+function actDiscipline(){
+  if(!pet||pet.dead)return;
+  if(pet.fakeAttn){
+    // 嚙?嚙踝蕭?嚙踝蕭?嚗蕭??嚙踝蕭?嚙?
+    pet.fakeAttn=false;
+    pet.callAttn=false;
+    if(pet.discipline<4)pet.discipline++;
+    sfx('scold');
+    render();renderHUD();
+  }else if(pet.callAttn&&(pet.hunger>=4||pet.happy<=0)){
+    // ?嚙踝蕭?瘙蕭??嚙賜蔑 ??careMiss
+    pet.careMiss++;
+    sfx('scold');
+  }else{
+    sfx('click');
+  }
+  recalcAttn();save();
+}
+
+// ?嚙?嚙??嚙賣 ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+function startPlay(){
+  if(!pet||pet.dead||pet.sleeping||pet.sick)return;
+  playState={phase:'choose',pChoice:0,cChoice:0,result:null};
+  subIdx=0;menuOpen=false;
+  render();
+}
+function resolvePlay(){
+  const p=playState.pChoice;
+  const c=Math.floor(Math.random()*3);
+  playState.cChoice=c;
+  // 0=Paper 1=Rock 2=Scissors嚗aper>Rock, Rock>Scissors, Scissors>Paper
+  let res='draw';
+  if((p===0&&c===1)||(p===1&&c===2)||(p===2&&c===0))res='win';
+  else if(p!==c)res='lose';
+  playState.result=res;
+  playState.phase='result';
+  if(res==='win'){
+    if(pet.need==='play'){pet.need=null;pet.needAcc=0;pet.needQueue=[];} // 滿足玩耍需求
+    if(pet.happy<4)pet.happy++; // 贏了一定加快樂，不管有無 play need
+    sfx('win');
+  }
+  else sfx(res==='lose'?'lose':'click');
+  pet.dirtyAcc+=DIRTY_ACCUM*0.2; // play adds some dirt
+  pet.dirtyAcc+=DIRTY_ACCUM*0.2; // 玩耍後稍微變髒
+  recalcAttn();save();renderHUD();
+}
+
+// ?嚙?嚙??嚙賡皜莎蕭? ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+function sprKey(){
+  if(!pet)return'egg';
+  if(pet.dead)return pet.angel?'angel':'skull';
+  if(pet.stage==='egg')return'egg';
+  const tp=pet.eggType||0;
+  const fam=['chick','cat','bear'][tp];
+  if(pet.stage==='baby')return fam+'_baby';
+  return fam+'_'+(pet.variant||'good');
+}
+
+function bg(dark){
+  ctx.fillStyle=dark?LCD_DARK:LCD_LIGHT;
+  ctx.fillRect(0,0,W,H);
+}
+
+function drawLCDGrid(){
+  const CELL=4; // 瘥 4px
+  ctx.save();
+  ctx.strokeStyle='rgba(180,80,130,0.09)';
+  ctx.lineWidth=0.5;
+  for(let x=0;x<=W;x+=CELL){
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+  for(let y=0;y<=H;y+=CELL){
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawCleanAnim(){
+  bg();
+  const f=cleanAnim.frame;
+  const elapsed=performance.now()-cleanAnim.startMs;
+  const pct=Math.min(1,elapsed/cleanAnim.durationMs);
+  const cx=W/2, cy=H/2;
+
+  if(pct<0.5){
+    // --- phase 1: 皜?靘蹂噶 ---
+    // 靘蹂噶嚗撓瘨仃嚗?
+    const pFade=1-pct*2;
+    ctx.globalAlpha=pFade;
+    // ??1-3 ?噶靘踹?銝?憭?
+    for(let i=0;i<3;i++){
+      const bx=cx-24+i*24, by=cy+10+f*0.3;
+      ctx.fillStyle='#8b5e3c';
+      ctx.beginPath();ctx.ellipse(bx,by,10,7,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#a0703a';
+      ctx.beginPath();ctx.ellipse(bx,by-7,7,5,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#c09060';
+      ctx.beginPath();ctx.ellipse(bx,by-13,4,3,0,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    // ???桀?
+    const bAngle=Math.sin(f*0.4)*0.5;
+    ctx.save();
+    ctx.translate(cx+30, cy+20);
+    ctx.rotate(bAngle);
+    // ????
+    ctx.fillStyle='#a06028';
+    ctx.fillRect(-2,-40,4,45);
+    // ?琿
+    ctx.fillStyle='#e8c060';
+    for(let i=-3;i<=3;i++){
+      ctx.fillRect(i*4-2,4,3,12);
+    }
+    ctx.restore();
+    // 憌蕩撠?摮?
+    ctx.fillStyle='#c0c0a0';
+    for(let i=0;i<5;i++){
+      const px2=cx+20+Math.sin(f*0.3+i*1.3)*18;
+      const py2=cy+20+Math.cos(f*0.2+i*1.1)*8;
+      ctx.beginPath();ctx.arc(px2,py2,2,0,Math.PI*2);ctx.fill();
+    }
+    drawTextC('CLEANING!',H-22,1,'#a06030');
+  } else {
+    // --- phase 2: 撖萇?? ---
+    const sk=sprKey();
+    // ??頝唾絲
+    const bounce=Math.abs(Math.sin((pct-0.5)*Math.PI*4))*14;
+    const ex=Math.floor((W-14*8)/2);
+    drawSprite(sk, ex, Math.floor(cy-50-bounce), 8);
+    // 瘜⊥部/?????
+    const sparkCount=8;
+    for(let i=0;i<sparkCount;i++){
+      const angle=(i/sparkCount)*Math.PI*2;
+      const dist=30+((pct-0.5)*120);
+      const sx2=cx+Math.cos(angle)*dist;
+      const sy2=cy+Math.sin(angle)*dist*0.6;
+      const a=Math.max(0,1-(pct-0.5)*2);
+      ctx.globalAlpha=a;
+      ctx.fillStyle=i%2===0?'#ff69b4':'#ffe066';
+      // 撠?敶?
+      ctx.save();
+      ctx.translate(sx2,sy2);
+      ctx.beginPath();
+      for(let s=0;s<5;s++){
+        const sa=s*Math.PI*2/5-Math.PI/2;
+        const sa2=sa+Math.PI/5;
+        ctx.lineTo(Math.cos(sa)*5,Math.sin(sa)*5);
+        ctx.lineTo(Math.cos(sa2)*2,Math.sin(sa2)*2);
+      }
+      ctx.closePath();ctx.fill();
+      ctx.restore();
+    }
+    ctx.globalAlpha=1;
+    // 憭扳?敹?
+    if(f%20<12){
+      ctx.save();
+      ctx.fillStyle='#ff3e88';
+      ctx.font='bold 20px serif';
+      ctx.textBaseline='middle';
+      ctx.textAlign='center';
+      ctx.fillText('✪',cx,cy-70);
+      ctx.restore();
+    }
+    drawTextC('SQUEAKY CLEAN!',H-22,1,'#e040a0');
+  }
+}
+
+function drawFeedAnim(){
+  bg();
+  const f=feedAnim.frame;
+  const pct=Math.min(1,(performance.now()-feedAnim.startMs)/feedAnim.durationMs);
+  const snack=feedAnim.snack;
+  // ?? 撖萇嚗?嚗?撌佗?scale=5嚗??????????????????????????
+  const sk=sprKey();
+  const bobY=f%16<8?-2:0;
+  const petX=4, petY=28+bobY;
+  drawSprite(sk,petX,petY,5);  // 14*5=70px wide, 14*5=70px tall
+  // ?? ??嚗??典秘?抵????????????????????????????????
+  ctx.save();
+  // ??銝駁?嚗０敶ｇ??賢?蝎?
+  ctx.fillStyle='#fffaf0';
+  ctx.beginPath();
+  ctx.moveTo(petX+14,petY+36); // ?詨椰
+  ctx.lineTo(petX+56,petY+36); // ?詨
+  ctx.lineTo(petX+62,petY+62); // 銝
+  ctx.lineTo(petX+8, petY+62); // 銝椰
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='#f080b0';ctx.lineWidth=1.5;ctx.stroke();
+  // ??銝?撠鋆ˇ
+  ctx.fillStyle='#ff80b0';
+  ctx.beginPath();ctx.arc(petX+35,petY+50,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffe0f0';
+  for(let a=0;a<5;a++){
+    const ax=petX+35+Math.cos(a/5*Math.PI*2)*5;
+    const ay=petY+50+Math.sin(a/5*Math.PI*2)*5;
+    ctx.beginPath();ctx.arc(ax,ay,2,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+  // ?? 擗嚗?摮椰????單?嚗????????????????????????????
+  const armSwing=f%24<12?0.25:-0.1; // ????
+  // ??嚗椰?湛?敺?文??孵???
+  ctx.save();
+  ctx.translate(petX+22, petY+55);
+  ctx.rotate(0.5+armSwing);
+  ctx.fillStyle='#c0c0e0'; // ??脣?摮?
+  ctx.fillRect(-2,-26,4,26);             // ??
+  ctx.fillRect(-2,-26,4,3);              // ?
+  for(let i=-4;i<=4;i+=2){ctx.fillRect(i,-34,2,10);} // ??嚗?璇?
+  ctx.restore();
+  // ?嚗?湛?
+  ctx.save();
+  ctx.translate(petX+50, petY+55);
+  ctx.rotate(-0.4-armSwing);
+  ctx.fillStyle='#c0c0e0';
+  ctx.fillRect(-2,-26,4,26);            // ??
+  ctx.fillStyle='#e8e8f8';
+  ctx.beginPath();                      // ?頨恬?撠嚗?
+  ctx.moveTo(-2,-26); ctx.lineTo(2,-26);
+  ctx.lineTo(3,-36);  ctx.lineTo(-1,-36);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+  // ?? 擗?嚗??嚗????????????????????????????????????
+  const tx=96, ty=108; // 獢銝剖?
+  ctx.fillStyle='#a05520';
+  ctx.fillRect(tx-44,ty,88,7);    // 獢
+  ctx.fillRect(tx-46,ty+7,92,4);  // 獢窒
+  ctx.fillStyle='#884410';
+  ctx.fillRect(tx-40,ty+11,8,22); // 撌西
+  ctx.fillRect(tx+32,ty+11,8,22); // ?唾
+  // ?? ?文? ?????????????????????????????????????????????
+  ctx.fillStyle='#f8f4ec';
+  ctx.beginPath();ctx.ellipse(tx,ty-2,28,8,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#d4b88a';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(tx,ty-2,28,8,0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ede8e0';
+  ctx.beginPath();ctx.ellipse(tx,ty-4,20,5,0,0,Math.PI*2);ctx.fill();
+  // ?? 憌嚗之??憿荔???????????????????????????????????
+  if(snack){
+    // 憭找?閫?蝟?
+    const fy=ty-8;
+    // ??擃?蝎?嚗?
+    ctx.fillStyle='#f0b0d0';
+    ctx.beginPath();
+    ctx.moveTo(tx-22,fy);ctx.lineTo(tx+22,fy);ctx.lineTo(tx,fy-38);
+    ctx.closePath();ctx.fill();
+    // 憟嗆硃憭曉惜
+    ctx.fillStyle='#fffbe0';
+    ctx.fillRect(tx-18,fy-12,36,4);
+    ctx.fillRect(tx-12,fy-24,24,4);
+    // 憭?
+    ctx.strokeStyle='#c05080';ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(tx-22,fy);ctx.lineTo(tx+22,fy);ctx.lineTo(tx,fy-38);
+    ctx.closePath();ctx.stroke();
+    // ?憟嗆硃mountain
+    ctx.fillStyle='#fffaf6';
+    ctx.beginPath();ctx.arc(tx,fy-38,7,Math.PI,0);ctx.fill();
+    ctx.beginPath();ctx.arc(tx-5,fy-36,5,Math.PI,0);ctx.fill();
+    ctx.beginPath();ctx.arc(tx+5,fy-36,5,Math.PI,0);ctx.fill();
+    // ??
+    ctx.fillStyle='#e82020';
+    ctx.beginPath();ctx.arc(tx,fy-44,5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#208020';
+    ctx.save();ctx.translate(tx,fy-44);
+    ctx.fillRect(-1,-7,2,5);ctx.fillRect(-3,-6,2,3);ctx.fillRect(1,-6,2,3);
+    ctx.restore();
+    // 蝟?暺韌
+    ['#ff80c0','#fffb00','#80c0ff'].forEach((c,i)=>{
+      ctx.fillStyle=c;
+      ctx.beginPath();ctx.arc(tx-10+i*10,fy-5,2,0,Math.PI*2);ctx.fill();
+    });
+  } else {
+    // 憭抒???
+    const sy=ty-4;
+    // ??銝駁?嚗楛璉?
+    ctx.fillStyle='#7a3008';
+    ctx.beginPath();ctx.ellipse(tx,sy,22,12,0,0,Math.PI*2);ctx.fill();
+    // ????
+    ctx.fillStyle='#c05818';
+    ctx.beginPath();ctx.ellipse(tx,sy-1,18,9,0,0,Math.PI*2);ctx.fill();
+    // ?斤?
+    ctx.strokeStyle='#601800';ctx.lineWidth=2.5;ctx.lineCap='round';
+    for(let i=-1;i<=1;i++){
+      ctx.beginPath();ctx.moveTo(tx-12,sy+i*3);ctx.lineTo(tx+10,sy+i*3-2);ctx.stroke();
+    }
+    // 撉券
+    ctx.fillStyle='#fffff4';
+    ctx.fillRect(tx+14,sy-8,5,16);
+    ctx.beginPath();ctx.arc(tx+16,sy-8,5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(tx+16,sy+8,5,0,Math.PI*2);ctx.fill();
+    // 擃?
+    ctx.fillStyle='rgba(255,200,100,0.35)';
+    ctx.beginPath();ctx.ellipse(tx-6,sy-4,7,4,-0.3,0,Math.PI*2);ctx.fill();
+  }
+  // ?? 瞍筑?? ?????????????????????????????????????????
+  if(pct>0.1){
+    const hearts=['♥','♥','♥'];
+    hearts.forEach((h,i)=>{
+      const startPct=0.1+i*0.15;
+      if(pct<startPct)return;
+      const hp=(pct-startPct)/0.5;
+      const alpha=Math.max(0,1-hp);
+      const hx=tx-12+i*12;
+      const hy=ty-50-hp*40;
+      ctx.save();ctx.globalAlpha=alpha;
+      ctx.fillStyle='#ff5599';
+      ctx.font='14px serif';ctx.textBaseline='middle';
+      ctx.fillText(h,hx,hy);
+      ctx.restore();
+    });
+  }
+  // ?? 璅??? ??????????????????????????????????????????
+  drawTextC(snack?'SNACK!':'MEAL!',H-18,1,'#c04060');
+}
+
+function render(){
+  if(shopPhase){drawShop();drawLCDGrid();return;}
+  if(!pet){drawStart();drawLCDGrid();return;}
+  if(pet.dead){pet.angel?drawAngel():drawDead();drawLCDGrid();return;}
+  if(pet.stage==='egg'){drawEgg();drawLCDGrid();return;}
+  if(feedAnim){drawFeedAnim();drawLCDGrid();return;}
+  if(refuseAnim){drawRefuse();drawLCDGrid();return;}
+  if(hugAnim){drawHugAnim();drawLCDGrid();return;}
+  if(bathAnim){drawBathAnim();drawLCDGrid();return;}
+  if(exerciseAnim){drawExerciseAnim();drawLCDGrid();return;}
+  if(cleanAnim){drawCleanAnim();drawLCDGrid();return;}
+  if(lightMenu){drawLightMenu();drawLCDGrid();return;}
+  if(pet.sleeping){drawSleep();drawLCDGrid();return;}
+  if(playState){drawPlay();drawLCDGrid();return;}
+  if(showStat){drawStatus();drawLCDGrid();return;}
+  if(menuOpen){drawSubMenu();drawLCDGrid();return;}
+  drawMain();drawLCDGrid();
+}
+
+// ?嚙?嚙???canvas arc ?嚙踝蕭?皛蕭?嚙??嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+function drawEggShape(cx,cy,rw,rh,typeIdx){
+  const t=EGG_TYPES[typeIdx||0];
+  ctx.save();
+  // ?嚙賢蔣
+  ctx.beginPath();
+  ctx.ellipse(cx,cy+rh+4,rw*0.7,5,0,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,0.13)';ctx.fill();
+  // ?嚙賢耦 4 畾蛛蕭??嚙踝蕭?銝蕭?瞏扎葉撖研蕭???
+  const top=cy-rh, bot=cy+rh;
+  ctx.beginPath();
+  ctx.moveTo(cx, top);
+  // ?嚙踝蕭?嚗蕭?暺蕭??嚙踝蕭??嚙踝蕭??嚙賢暺蕭??嚙踝蕭??嚙賡?嚙踝蕭?
+  ctx.bezierCurveTo(cx+rw*0.75, top,         cx+rw,      cy-rh*0.1,   cx+rw,      cy+rh*0.2);
+  // ?嚙踝蕭?嚗蕭?撖穿蕭??嚙踝蕭??嚙賣
+  ctx.bezierCurveTo(cx+rw,      cy+rh*0.65,  cx+rw*0.55, bot,         cx,         bot);
+  // 撌佗蕭?嚗蕭?摨椰??
+  ctx.bezierCurveTo(cx-rw*0.55, bot,         cx-rw,      cy+rh*0.65,  cx-rw,      cy+rh*0.2);
+  // 撌佗蕭?嚗蝒蕭??嚙踝蕭?嚗?嚙踝蕭?憭霈蕭??嚙踝蕭?嚙?
+  ctx.bezierCurveTo(cx-rw,      cy-rh*0.1,   cx-rw*0.75, top,         cx,         top);
+  ctx.closePath();
+  ctx.fillStyle=t.fill;ctx.fill();
+  ctx.strokeStyle=t.stroke;ctx.lineWidth=3;ctx.stroke();
+  // 鋆ˇ
+  if(t.deco==='spots'){
+    ctx.fillStyle=t.stroke;
+    [[cx-rw*.25,cy-rh*.1,4],[cx+rw*.2,cy+rh*.15,5],[cx-rw*.05,cy+rh*.35,3]]
+      .forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();});
+  }else if(t.deco==='stars'){
+    ctx.fillStyle=t.stroke;
+    [[cx+rw*.2,cy-rh*.2],[cx-rw*.25,cy+rh*.1],[cx+rw*.05,cy+rh*.35]]
+      .forEach(([x,y])=>{
+        ctx.beginPath();
+        ctx.moveTo(x,y-5);ctx.lineTo(x+3,y);ctx.lineTo(x,y+5);ctx.lineTo(x-3,y);
+        ctx.closePath();ctx.fill();
+      });
+  }
+  // ?嚙賣黎
+  ctx.beginPath();
+  ctx.ellipse(cx-rw*.22,cy-rh*.3,rw*.15,rh*.11,-0.4,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.55)';ctx.fill();
+  ctx.restore();
+}
+
+function drawRefuse(){
+  const elapsed=performance.now()-refuseAnim.startMs;
+  const dur=1200;
+  if(elapsed>=dur){refuseAnim=null;render();return;}
+  bg();
+  const sk=sprKey();
+  // ?嚗? 150ms 撌血??嚗?摨?2*S px
+  const shakeX=Math.floor(elapsed/150)%2===0 ? -2*S : 2*S;
+  const ex=Math.floor((W-14*S)/2)+shakeX;
+  const ey=10;
+  drawSprite(sk,ex,ey);
+  // 銝剖亢?怠之蝝??
+  const cx=W/2, cy=60;
+  ctx.save();
+  ctx.strokeStyle='#e81030';
+  ctx.lineWidth=8;
+  ctx.lineCap='round';
+  ctx.globalAlpha=0.85;
+  ctx.beginPath();ctx.moveTo(cx-16,cy-16);ctx.lineTo(cx+16,cy+16);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+16,cy-16);ctx.lineTo(cx-16,cy+16);ctx.stroke();
+  ctx.restore();
+  // NO! ??
+  drawTextC('NO!',H-22,2,'#e81030');
+}
+
+function drawHugAnim(){
+  const elapsed=performance.now()-hugAnim.startMs;
+  const dur=1800;
+  if(elapsed>=dur){hugAnim=null;render();return;}
+  bg();
+  const sk=sprKey();
+  // 撠歲嚗? 300ms 撘寡絲
+const bounce=Math.floor(elapsed/300)%2===0?-S*2:0;
+  const ex=Math.floor((W-14*S)/2);
+  drawSprite(sk,ex,10+bounce);
+  // 3 敹耦銝?擃漲瞍絲
+  const hearts=[
+    {x:ex-8,  baseY:80, phase:0},
+    {x:ex+70, baseY:72, phase:0.6},
+    {x:ex+35, baseY:65, phase:1.2},
+  ];
+  const pct=elapsed/dur;
+  hearts.forEach(h=>{
+    const fy=(h.baseY - pct*60 + Math.sin(elapsed/200+h.phase)*5);
+    const alpha=Math.max(0,1-pct*1.4);
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle='#ff4488';
+    ctx.font='20px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('♥',h.x,fy);
+    ctx.restore();
+  });
+  ctx.globalAlpha=1;
+  drawTextC('LOVE~',H-18,1,'#e04080');
+}
+
+function drawBathAnim(){
+  const elapsed=performance.now()-bathAnim.startMs;
+  const dur=2200;
+  if(elapsed>=dur){bathAnim=null;render();return;}
+  bg();
+  const sk=sprKey();
+  const ex=Math.floor((W-14*S)/2);
+  // ?瘞湧?
+  ctx.fillStyle='rgba(140,210,255,0.22)';
+  ctx.fillRect(0,H-55,W,55);
+  drawSprite(sk,ex,8);
+  // 瘜⊥部憌筑
+  const pct=elapsed/dur;
+  for(let i=0;i<8;i++){
+    const bx=20+i*18+Math.sin(elapsed/300+i)*8;
+    const by=H-50 - pct*(30+i*10) - Math.sin(elapsed/200+i*0.7)*4;
+    const r=3+Math.sin(elapsed/250+i)*1.5;
+    const alpha=Math.max(0,1-pct*1.2);
+    ctx.globalAlpha=alpha;
+    ctx.strokeStyle='#60c8ff';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  // 瘞渡?撠輕
+  for(let i=0;i<5;i++){
+    const dx=Math.sin(elapsed/180+i*1.3)*15;
+    const dy=(elapsed/8+i*40)%80;
+    ctx.fillStyle='rgba(100,200,255,0.7)';
+    ctx.beginPath();ctx.arc(W/2+dx,30+dy,2,0,Math.PI*2);ctx.fill();
+  }
+  drawTextC('SPLASH!',H-18,1,'#2090d0');
+}
+
+function drawExerciseAnim(){
+  const elapsed=performance.now()-exerciseAnim.startMs;
+  const dur=3000;
+  if(elapsed>=dur){exerciseAnim=null;render();return;}
+  bg();
+
+  const t=elapsed/1000; // seconds
+  const spd=6;          // belt scroll speed (px per frame equiv)
+
+  // ── Treadmill base ──────────────────────────────────────────
+  const bx=18, by=88, bw=W-36, bh=18;
+  const legH=22;
+
+  // Treadmill legs
+  ctx.fillStyle='#604030';
+  ctx.fillRect(bx+4,       by+bh, 8, legH);
+  ctx.fillRect(bx+bw-12,   by+bh, 8, legH);
+
+  // Belt track (dark base)
+  ctx.fillStyle='#333';
+  ctx.fillRect(bx, by, bw, bh);
+
+  // Scrolling belt stripes
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(bx+2, by+2, bw-4, bh-4);
+  ctx.clip();
+  ctx.fillStyle='#555';
+  ctx.fillRect(bx+2, by+2, bw-4, bh-4);
+  const stripeW=16, stripeGap=24;
+  const offset=(t*spd*40)%(stripeW+stripeGap);
+  ctx.fillStyle='#777';
+  for(let x=bx-stripeW+offset; x<bx+bw+stripeW; x+=stripeW+stripeGap){
+    ctx.beginPath();
+    ctx.moveTo(x,        by+2);
+    ctx.lineTo(x+stripeW,by+2);
+    ctx.lineTo(x+stripeW-4,by+bh-2);
+    ctx.lineTo(x-4,      by+bh-2);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Belt edge highlight
+  ctx.strokeStyle='#888';ctx.lineWidth=1.5;
+  ctx.strokeRect(bx,by,bw,bh);
+
+  // Handrail poles
+  ctx.strokeStyle='#b06040';ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(bx+8,by);ctx.lineTo(bx+8,by-36);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx+bw-8,by);ctx.lineTo(bx+bw-8,by-36);ctx.stroke();
+  // Handrail bar
+  ctx.strokeStyle='#d08060';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(bx+8,by-36);ctx.lineTo(bx+bw-8,by-36);ctx.stroke();
+
+  // ── Running pet (bobbing on belt) ────────────────────────────
+  const frame=Math.floor(t*8)%2; // 0 or 1 at 8fps
+  const bobY=frame===0?-1:1;
+  const legSwing=frame===0?1:-1;
+  const petCX=W/2, petTopY=by-38+bobY;
+  const sk=sprKey();
+  drawSprite(sk, petCX-10, petTopY);
+
+  // Running legs overlay (simple pixel legs swinging)
+  ctx.fillStyle='#c04878';
+  // left leg
+  ctx.fillRect(petCX-7, petTopY+16, 4, 6+legSwing*3);
+  // right leg
+  ctx.fillRect(petCX+3,  petTopY+16, 4, 6-legSwing*3);
+
+  // ── Sweat drops ─────────────────────────────────────────────
+  const sw=[
+    {x:petCX+14, y:petTopY+2,  phase:0},
+    {x:petCX+18, y:petTopY+10, phase:0.4},
+    {x:petCX+12, y:petTopY+18, phase:0.8},
+  ];
+  sw.forEach(s=>{
+    const fly=(t*2+s.phase)%1;
+    const sy=s.y + fly*14;
+    const alpha=1-fly;
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle='#40b0ff';
+    ctx.beginPath();
+    ctx.moveTo(s.x,sy);
+    ctx.lineTo(s.x-3,sy+6);ctx.lineTo(s.x+3,sy+6);
+    ctx.closePath();ctx.fill();
+  });
+  ctx.globalAlpha=1;
+
+  // ── Speed lines ─────────────────────────────────────────────
+  ctx.strokeStyle='rgba(80,80,80,0.25)';ctx.lineWidth=1.5;
+  for(let i=0;i<4;i++){
+    const ly=petTopY+6+i*8;
+    const lx=bx+4;
+    ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(lx+18,ly);ctx.stroke();
+  }
+
+  // ── Label ────────────────────────────────────────────────────
+  drawTextC('EXERCISE!',H-14,1,'#e06020');
+}
+
+function drawStart(){
+  bg();
+  drawEggShape(W/2,62,28,35,0);
+  if(Math.floor(Date.now()/900)%2===0){
+    drawTextC('PRESS B',110,2);
+    drawTextC('TO START',128,1);
+  }
+}
+function drawShop(){
+  bg();
+  drawTextC('PET SHOP',4,2);
+  const t=EGG_TYPES[shopIdx];
+  drawEggShape(W/2,62,28,35,shopIdx);
+  EGG_TYPES.forEach((_,i)=>{
+    ctx.beginPath();
+    ctx.arc(W/2+(i-1)*14,104,i===shopIdx?4:2.5,0,Math.PI*2);
+    ctx.fillStyle=i===shopIdx?'#1a1a1a':'#888';ctx.fill();
+  });
+  drawTextC(t.name,110,1);
+  drawTextC(t.desc,122,1);
+  drawText('<',8,60,2);
+  drawText('>',W-14,60,2);
+  if(blinkOn) drawTextC('B:PICK',H-14,1);
+}
+
+function drawEgg(){
+  bg();
+  const pct=Math.min(1,pet.ageMin/3);
+
+  let ox=0,oy=0;
+  if(eggShake.active){
+    const f=eggShake.frames;
+    const amp=pct>0.8?(f>6?9:5):(f>6?6:3);
+    ox=(f%2===0)?amp:-amp;
+    oy=(f%4<2)?-2:1;
+  }
+
+  const cx=W/2, cy=62;
+  drawEggShape(cx+ox,cy+oy,28,35,pet.eggType||0);
+
+  // 鋆?嚗??駁朣?敺???銝?
+  if(pct>0.8){
+    ctx.save();
+    ctx.strokeStyle='#5a2010';ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';
+    const tx=cx+ox, ty=cy+oy;
+    // 銝餉?蝮?- 敺??典?銝??餃耦
+    ctx.beginPath();
+    ctx.moveTo(tx,    ty-36);
+    ctx.lineTo(tx+5,  ty-26);
+    ctx.lineTo(tx-3,  ty-18);
+    ctx.lineTo(tx+6,  ty-8 );
+    ctx.lineTo(tx+1,  ty+2 );
+    ctx.stroke();
+    // pct>0.9 ?洵鈭?鋆葦
+    if(pct>0.9){
+      ctx.beginPath();
+      ctx.moveTo(tx-6,  ty-28);
+      ctx.lineTo(tx-13, ty-18);
+      ctx.lineTo(tx-6,  ty-10);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // 卵型名稱
+  const t=EGG_TYPES[pet.eggType||0];
+  drawTextC(t.name,14,1);
+
+  // ?嚙賢漲嚙?
+  const bw=Math.floor(pct*120);
+  ctx.fillStyle='#4a4a30';ctx.fillRect(20,H-20,120,8);
+  ctx.fillStyle='#c8e040';ctx.fillRect(20,H-20,bw,8);
+  drawTextC('HATCH',H-34,1);
+}
+
+function drawMain(){
+  bg(pet.sleeping);
+  const sk=sprKey();
+  const t=Date.now();
+  // 甇亥??嚗?1200ms撌血???暹嚗?
+  const wb=Math.floor(t/1200)%2===0?-1:1;
+  const ex=Math.floor((W-14*S)/2)+wb*S;
+  // 頛凝?澆韏瑚?嚗?1800ms銝甈∴?敺楨嚗?
+  const bobCycle=(t%1800)/1800;
+  const ey=Math.round(10 - Math.sin(bobCycle*Math.PI)*2);
+
+  if(pet.poopWarn){
+    drawSprite(sk,ex,ey);
+    if(blinkOn){
+      ctx.fillStyle='rgba(100,60,0,0.25)';
+      ctx.fillRect(ex,ey,14*S,14*S);
+    }
+    drawSprite('stink',4,4,8);
+    drawSprite('stink',W-4-14*8,4,8);
+  }else{
+    drawSprite(sk,ex,ey);
+  }
+
+  // ?泵
+  if(pet.sick&&blinkOn){
+    drawSprite('sick',4,4,8);
+  }
+
+  // 靘蹂噶
+  if(pet.dirty>=2){
+    ctx.fillStyle='rgba(120,70,20,0.22)';
+    ctx.fillRect(ex,ey,14*S,14*S);
+    for(let i=0;i<pet.dirty*3;i++){
+      const px=ex+Math.sin(i*137)*14*S*0.4+7*S;
+      const py=ey+Math.cos(i*97)*14*S*0.35+7*S;
+      ctx.fillStyle='rgba(100,55,10,0.55)';
+      ctx.beginPath();ctx.arc(px,py,2,0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  // 擃情閬死嚗?瘙∪漲>=2 撠梢＊蝷箸??脣?撠?
+  for(let i=0;i<pet.poop;i++){
+    drawSprite('poop',4+i*26,H-80,10);
+  }
+
+  // 摮斤敹耦瘜⊥部嚗im lonely<=1 銝??隞??亦???
+  if(pet.lonely<=1&&!pet.sick&&pet.happy>1&&pet.poop===0){
+    const bw_l=28,bh_l=24;
+    const bx=4, by=ey+4;
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.strokeStyle='#ffaabb';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(bx,by,bw_l,bh_l,6);ctx.fill();ctx.stroke();
+    ctx.save();
+    ctx.fillStyle='#ff4488';
+    ctx.font='14px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('♥',bx+bw_l/2,by+bh_l/2);
+    ctx.restore();
+    [0,1,2].forEach(i=>{
+      ctx.globalAlpha=0.6-i*0.15;
+      ctx.fillStyle='#ff88aa';
+      ctx.beginPath();ctx.arc(bx+bw_l+i*5,by+bh_l-4-i*4,2-i*0.3,0,Math.PI*2);ctx.fill();
+    });
+    ctx.globalAlpha=1;
+  }
+
+  // ?? ?喟?部瘜∴?happy<=1 銝??隞??亦?瘜???
+  if(pet.happy<=1&&!pet.sick&&!pet.poopWarn&&pet.poop===0){
+    const bx=4, by=ey-2; // 瘜⊥部雿蔭嚗移?銝?嚗?
+    const bw=38, bh=30;
+    // 撠?暺?撠?嚗??剝?唳部瘜∴?
+    [0,1,2].forEach(i=>{
+      const dotAlpha=Math.sin(t/400+i*0.8)>0?0.8:0.3;
+      ctx.globalAlpha=dotAlpha;
+      ctx.fillStyle='#ffffff';
+      ctx.beginPath();ctx.arc(bx+bw+4+i*5, by+bh-4-i*4, 2-i*0.3, 0, Math.PI*2);ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    // 瘜⊥部銝駁?嚗?脣?閫敶ｇ?
+    ctx.fillStyle='rgba(255,255,255,0.92)';
+    ctx.strokeStyle='#a0c0f0';ctx.lineWidth=2;
+    ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();ctx.stroke();
+    // 瘜⊥部鋆∠????蝝?梁?嚗?
+    const p=3;
+    const ballX=bx+7, ballY=by+5;
+    // ??嚗??莎?
+    // 球本體
+    ctx.fillStyle='#e83030';
+    ctx.beginPath();ctx.arc(ballX+7,ballY+8,7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#c01010';
+    ctx.beginPath();ctx.arc(ballX+7,ballY+9,7,0,Math.PI);ctx.fill();
+    ctx.fillStyle='#ffffff';
+    ctx.beginPath();ctx.arc(ballX+5,ballY+5,3,0,Math.PI*2);ctx.fill();
+    // 縫線
+    ctx.strokeStyle='#c01010';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(ballX+7,ballY+8,7,Math.PI*0.7,Math.PI*1.5);ctx.stroke();
+    // 星星（脈動）- save/restore 避免 textAlign 洩漏
+    const starPulse=0.7+Math.sin(t/300)*0.3;
+    ctx.save();
+    ctx.globalAlpha=starPulse;
+    ctx.fillStyle='#ffcc00';
+    ctx.font='10px serif';ctx.textBaseline='middle';ctx.textAlign='left';
+    ctx.fillText('★',bx+26,by+9);
+    ctx.restore();
+
+  }
+  // ?澆瘜冽??內嚗之??蝝???摨敺賜?
+  if(pet.callAttn&&blinkOn){
+    const bx=W-22, by=2;
+    // 蝝????寞? 18?26
+    ctx.fillStyle='#ff2060';
+    ctx.fillRect(bx,   by,   18, 26);
+    ctx.fillStyle='#ff80b0';
+    ctx.fillRect(bx+1, by+1, 16, 24); // 鈭格??抒葬
+    ctx.fillStyle='#ff2060';
+    ctx.fillRect(bx+2, by+2, 14, 22); // 銝駁?
+    // ?質?????? (4px wide, 12px tall)
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(bx+7, by+3,  4, 12); // 蝮望?
+    ctx.fillRect(bx+7, by+17, 4,  4); // 暺?
+  }
+
+  // ?瘙?蝷綽??憭＊蝷?4 ???踹?頞 LCD 撖砍漲嚗?
+  if(pet.callAttn){
+    const needs=[];
+    if(pet.hunger>=3)            needs.push('FEED');
+    if(pet.happy<=1)             needs.push('PLAY');
+    if(pet.lonely<=1)            needs.push('HUG');
+    if(pet.dirty>=3)             needs.push('BATH');
+    if(pet.sick)                 needs.push('MEDS');
+    if(pet.fakeAttn)             needs.push('DISC');
+    if(needs.length>0){
+      const label=needs.slice(0,4).join(' ');
+      ctx.fillStyle='rgba(200,80,140,0.18)';
+      ctx.fillRect(0,H-22,W,22);
+      if(blinkOn) drawTextC(label,H-14,1,'#c03080');
+    }
+  }
+
+  // 心情需求像素動畫泡泡
+  if(pet.need&&NEED_POOL.includes(pet.need)&&!pet.sleeping){
+    const t=Date.now();
+    // 泡泡位置（寵物右上方）
+    const bw=30, bh=30;
+    const bx=W-bw-2, by=ey;
+    // 泡泡本體
+    ctx.fillStyle='rgba(255,255,255,0.94)';
+    ctx.strokeStyle='#ffaad4';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(bx,by,bw,bh,5);ctx.fill();ctx.stroke();
+    // 小尾巴（向下指向寵物）
+    ctx.fillStyle='rgba(255,255,255,0.94)';
+    ctx.beginPath();ctx.arc(bx+6,by+bh+2,2.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(bx+4,by+bh+6,1.8,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(bx+2,by+bh+9,1.2,0,Math.PI*2);ctx.fill();
+
+    const cx=bx+bw/2, cy=by+bh/2;
+
+    if(pet.need==='hug'){
+      // 心形像素動畫（脈動）
+      const pulse=0.85+Math.sin(t/300)*0.15;
+      ctx.save();ctx.translate(cx,cy);ctx.scale(pulse,pulse);
+      ctx.fillStyle='#ff3377';
+      // 像素心形 (7x6 pixel)
+      const H7=[[1,0],[2,0],[4,0],[5,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],
+                 [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],
+                 [1,3],[2,3],[3,3],[4,3],[5,3],[2,4],[3,4],[4,4],[3,5]];
+      H7.forEach(([px,py])=>ctx.fillRect((px-3)*2,(py-3)*2,2,2));
+      ctx.restore();
+
+    } else if(pet.need==='play'){
+      // 球彈跳動畫
+      const bounce=Math.abs(Math.sin(t/220))*8;
+      const ballY=cy+4-bounce;
+      // 影子（球越高越淡）
+      ctx.globalAlpha=0.3*(1-bounce/8);
+      ctx.fillStyle='#888';
+      ctx.beginPath();ctx.ellipse(cx,cy+5,4,1.5,0,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;
+      // 球本體
+      ctx.fillStyle='#e82020';
+      ctx.beginPath();ctx.arc(cx,ballY,5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#ff6060';
+      ctx.beginPath();ctx.arc(cx-1.5,ballY-1.5,2,0,Math.PI*2);ctx.fill();
+      // 反光
+      ctx.fillStyle='#fff';
+      ctx.beginPath();ctx.arc(cx-1,ballY-2,1.2,0,Math.PI*2);ctx.fill();
+
+    } else if(pet.need==='snack'){
+      // 棒棒糖：同心圓＋棒子，緩慢旋轉讓顏色看起來轉動
+      const swing=Math.sin(t/500)*0.14;
+      ctx.save();ctx.translate(cx,cy+4);ctx.rotate(swing);
+      // 棒子
+      ctx.strokeStyle='#b89060';ctx.lineWidth=2;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(0,2);ctx.lineTo(0,12);ctx.stroke();
+      // 同心圓（由外到內）
+      const rings=[
+        {r:8, c:'#ff2255'},
+        {r:6, c:'#ffffff'},
+        {r:4, c:'#ff2255'},
+        {r:2, c:'#ffffff'},
+      ];
+      rings.forEach(({r,c})=>{
+        ctx.fillStyle=c;
+        ctx.beginPath();ctx.arc(0,-4,r,0,Math.PI*2);ctx.fill();
+      });
+      // 旋轉扇形覆蓋做色圈效果
+      const rot=(t/800)%(Math.PI*2);
+      const sectors=[
+        {start:rot,           end:rot+Math.PI,   c:'rgba(255,160,0,0.55)'},
+        {start:rot+Math.PI,   end:rot+Math.PI*2, c:'rgba(255,60,180,0.45)'},
+      ];
+      ctx.save();
+      ctx.beginPath();ctx.arc(0,-4,8,0,Math.PI*2);ctx.clip();
+      sectors.forEach(({start,end,c})=>{
+        ctx.fillStyle=c;
+        ctx.beginPath();
+        ctx.moveTo(0,-4);
+        ctx.arc(0,-4,8,start,end);
+        ctx.closePath();ctx.fill();
+      });
+      ctx.restore();
+      // 反光
+      ctx.fillStyle='rgba(255,255,255,0.55)';
+      ctx.beginPath();ctx.arc(-2,-6,2.5,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+
+    } else if(pet.need==='feed'){
+      // 白飯碗動畫（冒煙）
+      // 碗體
+      ctx.fillStyle='#e0d8c8';
+      ctx.beginPath();ctx.ellipse(cx,cy+4,9,5,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#c8bea8';
+      ctx.beginPath();ctx.ellipse(cx,cy+6,9,4,0,Math.PI,Math.PI*2);ctx.fill();
+      // 飯
+      ctx.fillStyle='#fffef8';
+      ctx.beginPath();ctx.ellipse(cx,cy,9,5,0,Math.PI,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(cx,cy,9,4,0,0,Math.PI);ctx.fill();
+      // 飯粒質感
+      ctx.fillStyle='#f0ece0';
+      [[cx-3,cy-1],[cx+2,cy-2],[cx-1,cy+1],[cx+4,cy]].forEach(([dx,dy])=>{
+        ctx.beginPath();ctx.arc(dx,dy,1.2,0,Math.PI*2);ctx.fill();
+      });
+      // 熱氣（往上飄）
+      for(let i=0;i<2;i++){
+        const phase=(t/600+i*0.5)%1;
+        const sx=cx-3+i*6;
+        const sy=cy-8-phase*10;
+        ctx.globalAlpha=Math.max(0,1-phase*1.3)*0.6;
+        ctx.strokeStyle='#d0c8b0';ctx.lineWidth=1.5;ctx.lineCap='round';
+        ctx.beginPath();
+        ctx.moveTo(sx,sy+5);
+        ctx.quadraticCurveTo(sx+3,sy+2,sx,sy);
+        ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+    }
+  }
+  drawText((pet.ageMin/(60*8)).toFixed(1)+'d',4,4,1);
+}
+
+
+function drawLightMenu(){
+  const p=3;
+  const R=(x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x*p,y*p,w*p,h*p);};
+  // 背景（明亮房間）
+  ctx.fillStyle='#f8f0e0';ctx.fillRect(0,0,W,H);
+  // 窗戶（亮色天空）
+  [[1,0,3],[0,1,5],[0,2,5],[0,3,5],[0,4,5],[0,5,5],[1,6,3]].forEach(([dx,dy,dw])=>R(3+dx,2+dy,dw,1,'#b8d8ff'));
+  [[2,0,2],[2,1,3],[2,2,3],[2,3,3],[2,4,3],[2,5,3],[2,6,2]].forEach(([dx,dy,dw])=>R(3+dx,2+dy,dw,1,'#7090b0'));
+  // 床柱
+  R(3,20,4,24,'#7a3c10'); R(3,19,4,2,'#9a5225'); R(4,21,2,22,'#5a2808'); R(3,43,4,2,'#4a2006');
+  R(50,23,3,19,'#7a3c10'); R(50,22,3,2,'#9a5225'); R(51,24,1,17,'#5a2808');
+  // 床框
+  R(7,22,43,2,'#6a3008'); R(7,41,43,2,'#6a3008');
+  // 床面
+  R(7,24,43,17,'#e8e0d4'); R(7,24,43,1,'#f4f0ea'); R(7,39,43,2,'#c8c0b4');
+  // 枕頭
+  R(8,25,13,8,'#fffff2');
+  R(8,25,13,1,'#d0d0c0'); R(8,25,1,8,'#d0d0c0'); R(20,25,1,8,'#d0d0c0'); R(8,32,13,1,'#d0d0c0');
+  R(9,26,1,6,'#f0f0e0'); R(9,28,11,1,'#e4e4d4'); R(9,30,11,1,'#e4e4d4');
+  // 棉被（同色系）
+  const pal=activePAL();
+  const qc=pet.eggType===0?'#f5e040':pet.eggType===1?'#d070e8':'#48b8e8';
+  const qd=pet.eggType===0?'#c0a818':pet.eggType===1?'#8a28b0':'#2078b0';
+  const ql=pet.eggType===0?'#fdf8d0':pet.eggType===1?'#f5d8ff':'#d0f0ff';
+  R(22,26,28,15,qc); R(22,26,28,3,ql); R(22,29,28,1,qd);
+  for(let gx=26;gx<50;gx+=6){R(gx,30,1,10,qd);}
+  for(let gy=32;gy<40;gy+=4){R(22,gy,28,1,qd);}
+  R(22,26,1,15,qd); R(22,40,28,1,qd);
+  R(24,25,18,2,qc); R(24,25,18,1,qd);
+  // 寵物站在床旁邊
+  const sk=sprKey();
+  const ex=Math.floor((W-14*10)/2);
+  drawSprite(sk,ex,8);
+  // 提示
+  const t=Date.now();
+  if(Math.floor(t/600)%2===0) drawTextC('B:SLEEP  C:BACK',H-14,1,'#806040');
+}
+function drawSleep(){
+  const t=Date.now();
+  const p=3; // 瘥?頛臬?蝝?= 3px嚗???蝝?
+  const R=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x*p,y*p,w*p,h*p);};
+
+  // ?? 憭征?嚗ixel ?脣?嚗??冽撓撅歹???????????????????
+  R(0,0,56,51,'#0c0820');
+  // ????嚗?暺?
+  [[7,1],[15,3],[24,1],[34,4],[44,2],[52,1],[11,7],[30,6],[48,7],[20,10],[42,9],[56,4]].forEach(([gx,gy],i)=>{
+    if(Math.floor(t/450+i*19)%4>0) R(gx,gy,1,1,'#d8e8ff');
+  });
+  // ???漁嚗??撌虫?閫?
+  [[1,0,3],[0,1,5],[0,2,5],[0,3,5],[0,4,5],[0,5,5],[1,6,3]].forEach(([dx,dy,dw])=>R(3+dx,2+dy,dw,1,'#ffe898'));
+  [[2,0,2],[2,1,3],[2,2,3],[2,3,3],[2,4,3],[2,5,3],[2,6,2]].forEach(([dx,dy,dw])=>R(3+dx,2+dy,dw,1,'#0c0820'));
+
+  // ?? 摨嚗??fillRect嚗???roundRect嚗????????????
+  // 摨?選?撌佗?擃?
+  R(3,20,4,24,'#7a3c10'); R(3,19,4,2,'#9a5225'); R(4,21,2,22,'#5a2808'); R(3,43,4,2,'#4a2006');
+  // 摨偏?選??喉??殷?
+  R(50,23,3,19,'#7a3c10'); R(50,22,3,2,'#9a5225'); R(51,24,1,17,'#5a2808');
+  // 銝?璈急▼
+  R(7,22,43,2,'#6a3008'); R(7,41,43,2,'#6a3008');
+  // 摨?
+  R(7,24,43,17,'#e8e0d4'); R(7,24,43,1,'#f4f0ea'); R(7,39,43,2,'#c8c0b4');
+
+  // ?? ?嚗椰?湛???????????????????????????????????????
+  R(8,25,13,8,'#fffff2');
+  R(8,25,13,1,'#d0d0c0'); R(8,25,1,8,'#d0d0c0'); R(20,25,1,8,'#d0d0c0'); R(8,32,13,1,'#d0d0c0');
+  R(9,26,1,6,'#f0f0e0'); // 撌阡???
+  R(9,28,11,1,'#e4e4d4'); R(9,30,11,1,'#e4e4d4'); // 璈怎?
+
+  // ?? 撖萇?刻澈嚗??恬???璉◤嚗????????????????????????
+  const pal=activePAL();
+  const c1=pal[1]; const c2=pal[2]; const c3=pal[3]; const c4=pal[4]||'#ffffff';
+  const tp=pet.eggType;
+
+  // ?單嚗???對?
+  if(tp===0){ // ???剝?蝢賣?
+    R(13,22,1,3,c2); R(12,23,1,2,c2); R(14,23,1,2,c2);
+  } else if(tp===1){ // 鞎?撠喉??拙?閫?
+    R(10,21,2,4,c3); R(10,21,1,4,c1); R(11,22,1,2,c4);
+    R(14,21,2,4,c3); R(15,21,1,4,c1); R(14,22,1,2,c4);
+  } else { // ????
+    R(10,22,3,3,c3); R(10,22,3,1,c1); R(11,23,1,1,c2);
+    R(14,22,3,3,c3); R(14,22,3,1,c1); R(15,23,1,1,c2);
+  }
+
+  // ?哨?7?7 pixel block嚗葆頛芸?嚗?
+  R(10,25,7,7,c3);
+  R(10,25,7,1,c1); R(10,25,1,7,c1); R(16,25,1,7,c1); R(10,31,7,1,c1);
+  R(10,25,1,1,'#0c0820'); R(16,25,1,1,'#0c0820'); // ????
+  R(10,31,1,1,'#0c0820'); R(16,31,1,1,'#0c0820');
+
+  // ?嚗偌撟喃?璇?嚗?
+  R(11,27,2,1,c1); R(14,27,2,1,c1);
+  R(11,26,1,1,c2); R(15,26,1,1,c2); // ?急?
+
+  // ?游毀/曌餃?嚗er type嚗?
+  if(tp===0){ // ??銝???
+    R(12,29,3,1,c2); R(13,29,1,2,c2);
+  } else if(tp===1){ // 鞎?曌?W??
+    R(13,29,1,1,c1);
+    R(11,30,2,1,c1); R(15,30,2,1,c1);
+  } else { // ??憟嗆硃曌餃
+    R(11,28,5,3,c4); R(13,29,1,1,c1);
+    R(11,30,2,1,c2); R(15,30,2,1,c2);
+  }
+  // ?桃?
+  R(10,29,1,1,'#ffaaaa'); R(16,29,1,1,'#ffaaaa');
+
+  // 頨恍?嚗帖?伐?敺?典辣隡詨?喟垢嚗?
+  R(17,26,30,5,c3);   // 銝駁?
+  R(17,26,30,1,c2);   // 銝憚撱?
+  R(17,30,30,1,c2);   // 銝憚撱?
+  R(46,26,1,5,c2);    // ?喟垢
+  R(17,26,1,5,c2);    // 撌衣垢嚗?哨?
+  // ?抵??貉絲嚗?頨恍???擃?嚗?
+  R(18,25,10,1,c2);
+
+  // ?喉??喟垢嚗?????
+  if(tp===0){ // ?嚗??莎?
+    R(41,31,3,3,c2); R(40,33,2,1,'#ff8020'); R(43,33,2,1,'#ff8020');
+    R(46,31,3,3,c2); R(45,33,2,1,'#ff8020'); R(48,33,2,1,'#ff8020');
+  } else if(tp===1){ // 鞎 + 撠曉毀
+    R(41,30,4,3,c3); R(41,32,4,1,c1);
+    R(46,30,4,3,c3); R(46,32,4,1,c1);
+    // 撠曉毀?脰絲嚗銝?
+    R(47,26,2,1,c3); R(49,25,1,2,c3); R(48,24,2,1,c3);
+    R(47,26,1,1,c2); R(49,25,1,1,c2); R(49,23,1,2,c2);
+  } else { // ?
+    R(40,30,5,4,c3); R(41,33,3,1,c2); R(40,30,1,1,c1);
+    R(46,30,5,4,c3); R(47,33,3,1,c2); R(50,30,1,1,c1);
+  }
+
+  // ?? 璉◤嚗??刻澈擃??挾隞亙嚗????????????????????????
+  const qc=tp===0?'#f5e040':tp===1?'#d070e8':'#48b8e8';
+  const qd=tp===0?'#c0a818':tp===1?'#8a28b0':'#2078b0';
+  const ql=tp===0?'#fdf8d0':tp===1?'#f5d8ff':'#d0f0ff';
+  // 璉◤銝駁?嚗???x=22~49, y=26~40嚗?
+  R(22,26,28,15,qc);
+  // 銝楠??嚗漁?脩蕃??
+  R(22,26,28,3,ql);
+  R(22,29,28,1,qd); // ??銝?
+  // ?潛?蝮怎?
+  for(let gx=26;gx<50;gx+=6){R(gx,30,1,10,qd);}
+  for(let gy=32;gy<40;gy+=4){R(22,gy,28,1,qd);}
+  // 璉◤頛芸?嚗椰??摨?嚗?
+  R(22,26,1,15,qd); R(22,40,28,1,qd);
+  // 頨恍??絲霈?鋡急?韏瑚???
+  R(24,25,18,2,qc); R(24,25,18,1,qd);
+
+  // ?? 憌筑 Z 摮?敺?其??寥?韏瘀? ??????????????????????
+  [0,1,2].forEach(i=>{
+    const cycle=2800, offset=i*(cycle/3);
+    const phase=(t+offset)%cycle;
+    if(phase>cycle*0.65)return;
+    const prog=phase/cycle;
+    const zx=(18+i*5)*p;
+    const zy=(22-prog*18)*p;
+    const alpha=Math.max(0,prog<0.4?prog/0.4:(1-prog)/0.6);
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle='#80c0ff';
+    ctx.font=`bold ${[10,8,6][i]}px "Press Start 2P",monospace`;
+    ctx.textBaseline='middle'; ctx.textAlign='left';
+    ctx.fillText('Z',zx,zy);
+    ctx.restore();
+  });
+  ctx.globalAlpha=1;
+
+  // ?? 摨?/SLEEP ?? ???????????????????????????????
+  if(pet.manualSleep&&pet.sleepStartMs){
+    const remain=Math.max(0,180-Math.floor((Date.now()-pet.sleepStartMs)/1000));
+    drawTextC('SLEEP '+Math.floor(remain/60)+':'+String(remain%60).padStart(2,'0'),H-14,1,'#6080d0');
+  } else {
+    if(Math.floor(t/700)%2===0) drawTextC('SLEEP  B:WAKE',H-14,1,'#6080d0');
+  }
+}
+
+function drawSubMenu(){
+  bg();
+  const m=MENUS[menuIdx];
+  const T={food:'FEED',light:'LIGHT',play:'GAME',meds:'MEDS',toilet:'CLEAN',status:'STATUS',discipline:'SCOLD'};
+  drawTextC(T[m]||m,6,2);
+  ctx.fillStyle='#c060a0';ctx.fillRect(4,28,W-8,2);
+  if(m==='food'){
+    ['MEAL','SNACK'].forEach((it,i)=>{
+      if(i===subIdx){
+        ctx.fillStyle='#1a1a1a';ctx.fillRect(16,40+i*44,136,28);
+        drawTextC(it,46+i*44,2,'#8fa85a');
+      }else{
+        drawTextC(it,46+i*44,2);
+      }
+    });
+    drawTextC('A/C:SEL  B:OK',H-14,1);
+  }
+}
+
+function drawStatus(){
+  bg();
+  drawTextC('STATUS',8,2);
+  ctx.fillStyle='#c060a0';ctx.fillRect(4,26,W-8,2);
+  const ageDays=(pet.ageMin/(60*8 )).toFixed(1);
+  [
+    ['AGE',ageDays+'d'],
+    ['WT', fmtWeight(pet.weight)],
+    ['HNGR',(4-pet.hunger)+'/4'],
+    ['HPPY',pet.happy+'/4'],
+    ['ENRG',pet.stamina+'/4'],
+    ['LNLY',pet.lonely+'/4'],
+    ['CLNS',(4-pet.dirty)+'/4'],
+    ['DISC',pet.discipline+'/4'],
+    ['SICK',pet.sick?'YES':'NO'],
+  ].forEach(([l,v],i)=>{
+    const y=32+i*13;
+    drawText(l,14,y,1);
+    ctx.save();
+    ctx.font='7px "Press Start 2P",monospace';
+    ctx.fillStyle='#6b1a40';
+    ctx.textBaseline='top';
+    ctx.textAlign='right';
+    ctx.fillText(v,W-10,y);
+    ctx.restore();
+  });
+}
+
+function drawPlay(){
+  bg();
+  const ps=playState;
+  if(ps.phase==='choose'){
+    drawTextC('GUESS!',4,2);
+    ctx.fillStyle='#c060a0';ctx.fillRect(4,24,W-8,2);
+    ['PAPER','ROCK','SCISS'].forEach((o,i)=>{
+      if(i===subIdx){
+        ctx.fillStyle='#1a1a1a';ctx.fillRect(14,32+i*38,140,28);
+        drawTextC(o,38+i*38,2,'#8fa85a');
+      }else drawTextC(o,38+i*38,2);
+    });
+    drawTextC('A:< C:>  B:OK',H-14,1);
+  }else{
+    const N=['PAPER','ROCK ','SCISS'];
+    drawText('YOU:'+N[ps.pChoice],6,16,1);
+    drawText('CPU:'+N[ps.cChoice],6,30,1);
+    ctx.fillStyle='#c060a0';ctx.fillRect(4,46,W-8,2);
+    const pal={win:'#1e8449',lose:'#c0392b',draw:'#7d6608'};
+    ctx.fillStyle=pal[ps.result]||'#888';
+    ctx.fillRect(24,54,120,44);
+    drawTextC(ps.result.toUpperCase(),64,3,'#fff');
+    if(blinkOn) drawTextC('B:NEXT',H-14,1);
+  }
+}
+
+function drawDead(){
+  bg();
+
+  // 憭?瞍詨惜
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#1a0828');
+  grad.addColorStop(1,'#3a1048');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,W,H);
+
+  // ??
+  ctx.fillStyle='#fff8e0';
+  const stars=[[10,8],[30,4],[50,12],[90,6],[120,3],[145,10],[160,18],[20,22],[70,18],[140,24]];
+  stars.forEach(([sx,sy])=>{
+    const twinkle=(animF+sx)%30<15;
+    ctx.globalAlpha=twinkle?0.9:0.4;
+    ctx.fillRect(sx,sy,2,2);
+  });
+  ctx.globalAlpha=1;
+
+  // ?圈?
+  ctx.fillStyle='#2a6030';ctx.fillRect(0,H-22,W,22);
+  ctx.fillStyle='#3a8040';ctx.fillRect(0,H-23,W,3);
+  for(let gx=4;gx<W;gx+=10){
+    ctx.fillStyle='#3a8040';
+    ctx.fillRect(gx,H-26,2,4);ctx.fillRect(gx+3,H-25,2,3);
+  }
+
+  // 嚙穀93蝣?
+  const tx=Math.floor(W/2), tb=H-22;
+  ctx.fillStyle='#9090a0';
+  ctx.fillRect(tx-22,tb-50,44,50);
+  ctx.fillRect(tx-18,tb-58,36,10);
+  ctx.fillRect(tx-14,tb-64,28,8);
+  ctx.fillRect(tx-10,tb-68,20,6);
+  ctx.fillRect(tx-6, tb-70,12,4);
+  ctx.fillStyle='#b0b0c0';
+  ctx.fillRect(tx-18,tb-46,36,40);
+  ctx.fillRect(tx-14,tb-56,28,12);
+  ctx.fillRect(tx-10,tb-60,20,6);
+  ctx.fillStyle='#707080';
+  ctx.fillRect(tx+20,tb-50,2,50);
+  ctx.fillRect(tx-22,tb-50,2,50);
+  // ??
+  ctx.fillStyle='#d0d0e0';
+  ctx.fillRect(tx-2,tb-62,4,18);
+  ctx.fillRect(tx-8,tb-56,16,4);
+  // RIP??
+  if(blinkOn){
+    ctx.fillStyle='#8888aa';
+    ctx.fillRect(tx-14,tb-40,28,4);
+    drawTextC('RIP',tb-32,1,'#505068');
+  }
+
+  // ??憌筑
+  const period=160;
+  const ghostRawY=(animF*1.5)%period;
+  const ghostY=tb-20-ghostRawY*0.9;
+  const fade=Math.min(1,Math.max(0, ghostRawY<60 ? ghostRawY/30 : (period-ghostRawY-10)/40 ));
+  if(fade>0){
+    ctx.save();
+    ctx.globalAlpha=fade*0.7;
+    ctx.filter='brightness(2.5) saturate(0.2) hue-rotate(180deg)';
+    const wobble=Math.sin(animF*0.2)*5;
+    drawSprite(sprKey(),Math.floor(tx-42+wobble),Math.floor(ghostY),6);
+    ctx.restore();
+  }
+
+  if(blinkOn) drawTextC('B:RETRY',H-10,1,'#806090');
+}
+
+function drawAngel(){
+  bg();
+  const fy=10+Math.sin(animF*0.07)*8;
+  drawSprite('angel',Math.floor((W-14*S)/2),Math.floor(fy));
+  if(blinkOn) drawTextC('GOODBYE!',H-18,2);
+}
+
+// ?嚙?嚙?HUD ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+function renderHUD(){
+  if(!pet)return;
+  ['hunger','happy'].forEach(key=>{
+    const el=document.getElementById(key+'-hearts');
+    if(!el)return;
+    el.innerHTML='';
+    for(let i=0;i<4;i++){
+      const d=document.createElement('div');
+      const filled = pet.stage!=='egg' && (key==='hunger'?(i<4-pet.hunger):(i<pet.happy));
+      d.className='heart'+(filled?'':' empty');
+      el.appendChild(d);
+    }
+  });
+  // stamina hearts
+  const sel=document.getElementById('stamina-hearts');
+  if(sel){
+    sel.innerHTML='';
+    for(let i=0;i<4;i++){
+      const d=document.createElement('div');
+      const filled = pet.stage!=='egg' && i<pet.stamina;
+      d.className='heart energy'+(filled?'':' empty');
+      sel.appendChild(d);
+    }
+  }  const al=document.getElementById('alert-light');
+  if(!pet){ if(al) al.className=''; return; }
+  if(al) al.className=(pet.callAttn||pet.sick)?'on':'';
+}
+
+function renderIcons(){
+  document.querySelectorAll('.menu-icon').forEach((el,i)=>{
+    el.classList.toggle('selected',i===menuIdx);
+  });
+}
+
+// ?嚙?嚙??嚙踝蕭? ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+let AC=null, muted=false;
+function getAC(){
+  if(!AC)try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  return AC;
+}
+// iOS Safari：每次 touch 都嘗試 resume，因為閒置後會再次 suspend
+function unlockAudio(){
+  const ac=getAC();if(!ac)return;
+  if(ac.state==='suspended'){
+    ac.resume().catch(()=>{});
+    // 播放靜音 buffer 強制解鎖（iOS 必須）
+    try{
+      const buf=ac.createBuffer(1,1,22050);
+      const src=ac.createBufferSource();
+      src.buffer=buf;src.connect(ac.destination);
+      src.start(0);
+    }catch(e){}
+  }
+}
+// 每次 touch 都 resume，不移除監聽，確保閒置後回來也有聲音
+document.addEventListener('touchstart',unlockAudio,true);
+document.addEventListener('touchend',unlockAudio,true);
+function _playBeep(ac,freq,dur,v,type){
+  try{
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.type=type||'square';o.frequency.value=freq;
+    g.gain.setValueAtTime(v||0.05,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+dur);
+    o.connect(g);g.connect(ac.destination);
+    o.start();o.stop(ac.currentTime+dur+0.02);
+  }catch(e){}
+}
+function beep(freq,dur,v,type){
+  if(muted)return;
+  try{
+    const ac=getAC();if(!ac)return;
+    if(ac.state==='suspended'){
+      // resume 是 async，等完成後再播
+      ac.resume().then(()=>_playBeep(ac,freq,dur,v,type)).catch(()=>{});
+    } else {
+      _playBeep(ac,freq,dur,v,type);
+    }
+  }catch(e){}
+}
+function sfx(t){
+  if(muted)return;
+  const seq=(arr,d,tp)=>arr.forEach(([f,delay])=>setTimeout(()=>beep(f,d,0.05,tp),delay));
+  switch(t){
+    case 'eat':    beep(880,0.07);break;
+    case 'yawn':   beep(300,0.12);setTimeout(()=>beep(220,0.18),120);setTimeout(()=>beep(180,0.14),260);break;
+    case 'evolve': seq([[523,0],[659,90],[784,180],[1047,270],[1319,360]],0.13);break;
+    case 'dead':   seq([[440,0],[330,160],[220,320],[147,480]],0.28,'sawtooth');break;
+    case 'hatch':  seq([[523,0],[659,100],[784,200],[1047,300]],0.12);break;
+    case 'meds':   beep(660,0.08);setTimeout(()=>beep(880,0.1),110);break;
+    case 'clean':  beep(440,0.06);setTimeout(()=>beep(660,0.06),90);break;
+    case 'scold':  beep(200,0.15,0.06,'sawtooth');break;
+    case 'win':    seq([[784,0],[1047,70],[1319,140]],0.1);break;
+    case 'click':  beep(600,0.04);break;
+    case 'lose':   beep(294,0.2,'sawtooth');break;
+    case 'alert':  [0,150].forEach(d=>setTimeout(()=>beep(880,0.06),d));break;
+  }
+}
+
+// ?嚙?嚙??嚙踝蕭??嚙質摩 ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+// ??? - 蝯衣摰嗅??擖?
+function eggBump(){
+  if(!pet||pet.stage!=='egg')return false;
+  eggShake.active=true;
+  eggShake.frames=10+Math.floor(Math.random()*6);
+  sfx('click');
+  startEggRaf();
+  return true;
+}
+
+function pressA(){
+  unlockAudio();
+  if(lightMenu){lightMenu=false;render();return;}
+  // 動畫播放中不允許切換選單
+  if(feedAnim||cleanAnim||exerciseAnim||hugAnim||refuseAnim)return;
+  if(eggBump()){render();return;}
+  if(shopPhase){shopIdx=(shopIdx+EGG_TYPES.length-1)%EGG_TYPES.length;sfx('click');render();return;}
+  if(!pet||pet.dead)return;
+  if(playState&&playState.phase==='choose'){subIdx=(subIdx+3-1)%3;sfx('click');render();return;}
+  if(menuOpen){
+    const m=MENUS[menuIdx];
+    if(m==='food'){subIdx=(subIdx+1)%2;sfx('click');}
+    render();return;
+  }
+  menuIdx=(menuIdx+MENUS.length-1)%MENUS.length;
+  renderIcons();render();
+}
+function pressB(){
+  unlockAudio();
+  if(lightMenu){lightMenu=false;pet.sleeping=true;pet.manualSleep=true;pet.sleepStartMs=Date.now();startSleepRaf();sfx('click');render();return;}
+  if(feedAnim){feedAnim=null;render();startIdleRaf();return;}
+  if(cleanAnim){cleanAnim=null;render();renderHUD();startIdleRaf();return;}
+  if(exerciseAnim){exerciseAnim=null;render();startIdleRaf();return;}
+  if(hugAnim){hugAnim=null;render();startIdleRaf();return;}
+  if(refuseAnim){refuseAnim=null;render();return;}
+  if(pet&&pet.stage==='egg'){eggBump();render();return;}
+  if(!pet&&!shopPhase){shopPhase=true;shopIdx=0;sfx('click');render();return;}
+  if(shopPhase){
+    const p=newPet();p.eggType=shopIdx;pet=p;
+    shopPhase=false;eggShake={active:false,frames:0,next:80};eggRafId=null;save();sfx('hatch');renderHUD();render();return;
+  }
+  if(pet.dead){shopPhase=true;shopIdx=0;pet=null;render();return;}
+  if(playState){
+    if(playState.phase==='choose'){playState.pChoice=subIdx;resolvePlay();render();}
+    else{playState=null;render();}
+    return;
+  }
+  if(showStat){showStat=false;render();return;}
+  if(menuOpen){
+    const m=MENUS[menuIdx];
+    if(m==='food')actFeed(subIdx===1);
+    menuOpen=false;render();renderHUD();return;
+  }
+  const m=MENUS[menuIdx];
+  if(m==='status'){showStat=true;render();return;}
+  if(m==='play'){startPlay();return;}
+  if(m==='food'){menuOpen=true;subIdx=0;sfx('click');render();return;}
+  if(m==='light'){
+    if(pet.sleeping){
+      // ???恍?
+      // 任何時候都可以強制喚醒
+        pet.sleeping=false;pet.manualSleep=false;stopSleepRaf();startIdleRaf();sfx('click');
+    } else {
+      // ??霈秘?拍閬綽???撠嚗?
+      pet.sleeping=true;pet.manualSleep=true;pet.sleepStartMs=Date.now();startSleepRaf();sfx('click');
+    }
+    render();return;
+  }
+  if(m==='meds'){actMeds();return;}
+  if(m==='toilet'){actToilet();return;}
+  if(m==='discipline'){actDiscipline();return;}
+  if(m==='hug'){actHug();return;}
+  if(m==='bath'){actBath();return;}
+  if(m==='exercise'){actExercise();return;}
+  render();renderHUD();
+}
+function pressC(){
+  unlockAudio();
+  if(lightMenu){lightMenu=false;render();return;}
+  // 動畫播放中不允許切換選單
+  if(feedAnim||cleanAnim||exerciseAnim||hugAnim||refuseAnim)return;
+  if(eggBump()){render();return;}
+  if(shopPhase){shopIdx=(shopIdx+1)%EGG_TYPES.length;sfx('click');render();return;}
+  if(!pet||pet.dead)return;
+  if(playState&&playState.phase==='choose'){subIdx=(subIdx+1)%3;sfx('click');render();return;} // C下一個選項
+  if(playState&&playState.phase==='result'){playState=null;render();return;}
+  if(menuOpen){
+    const m=MENUS[menuIdx];
+    if(m==='food'){subIdx=(subIdx+1)%2;sfx('click');render();}
+    else{menuOpen=false;render();}
+    return;
+  }
+  if(showStat){showStat=false;render();return;}
+  menuIdx=(menuIdx+1)%MENUS.length;
+  renderIcons();render();
+}
+
+// ?嚙?嚙?A+C ?嚙踝蕭??嚙踝蕭?嚙??嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+let aDown=false,cDown=false,resetTimer=null;
+function tryReset(){
+  if(aDown&&cDown){
+    resetTimer=setTimeout(()=>{
+      if(aDown&&cDown){
+        localStorage.removeItem(SAVE);
+        pet=null;shopPhase=false;aDown=false;cDown=false;
+        render();
+        const el=document.getElementById('hunger-hearts');
+        if(el) el.innerHTML='';
+        const el2=document.getElementById('happy-hearts');
+        if(el2) el2.innerHTML='';
+      }
+    },1000);
+  }
+}
+function cancelReset(){clearTimeout(resetTimer);}
+
+document.getElementById('btn-a').addEventListener('mousedown',()=>{aDown=true;tryReset();});
+document.getElementById('btn-a').addEventListener('mouseup',()=>{aDown=false;cancelReset();});
+document.getElementById('btn-c').addEventListener('mousedown',()=>{cDown=true;tryReset();});
+document.getElementById('btn-c').addEventListener('mouseup',()=>{cDown=false;cancelReset();});
+document.getElementById('btn-a').addEventListener('click',pressA);
+document.getElementById('btn-b').addEventListener('click',pressB);
+document.getElementById('btn-c').addEventListener('click',pressC);
+
+// 手機自動縮放：讓外殼填滿螢幕
+(function autoScale(){
+  const shell=document.getElementById('shell');
+  function applyScale(){
+    const vw=window.innerWidth;
+    const vh=window.innerHeight;
+    const SHELL_W=240;
+    const sh=shell.offsetHeight||560;
+    // 計算最大不超出螢幕的縮放比
+    const scale=Math.min(vw/SHELL_W, vh/sh, 2.5);
+    if(scale>1.05){
+      // 縮放後高度
+      const scaledH=sh*scale;
+      // 讓 shell 從頂部偏移，讓整體垂直置中
+      const topMargin=Math.max(0,Math.floor((vh-scaledH)/2));
+      // 覆蓋 body 的 flex 垂直置中，改由 marginTop 手動控制
+      document.body.style.justifyContent='flex-start';
+      shell.style.transformOrigin='top center';
+      shell.style.transform='scale('+scale.toFixed(3)+')';
+      shell.style.marginTop=topMargin+'px';
+    } else {
+      document.body.style.justifyContent='';
+      shell.style.transform='';
+      shell.style.marginTop='';
+    }
+  }
+  window.addEventListener('resize',applyScale);
+  // 等 shell 渲染好才量高度
+  requestAnimationFrame(()=>requestAnimationFrame(applyScale));
+})();
+
+// touch
+['a','b','c'].forEach(id=>{
+  const el=document.getElementById('btn-'+id);
+  el.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(id==='a'){aDown=true;tryReset();pressA();}
+    if(id==='b') pressB();
+    if(id==='c'){cDown=true;tryReset();pressC();}
+  },{passive:false});
+  el.addEventListener('touchend',()=>{
+    if(id==='a'){aDown=false;cancelReset();}
+    if(id==='c'){cDown=false;cancelReset();}
+  });
+});
+
+// icon 暺?嚗?蒂?湔?瑁?嚗??? B 蝣箄?嚗?
+document.querySelectorAll('.menu-icon').forEach((el,i)=>{
+  el.addEventListener('click',()=>{
+    if(shopPhase||!pet||pet.dead)return;
+    if(feedAnim||cleanAnim||exerciseAnim||hugAnim||refuseAnim)return;
+    // 關閉目前子視窗再跳轉
+    menuOpen=false;
+    showStat=false;
+    playState=null;
+    lightMenu=false; // 離開房間預覽
+    menuIdx=i;renderIcons();render();
+    if(MENUS[i]==='light'){lightMenu=true;render();}
+    else pressB();
+  });
+});
+// icon hover 移除：改為只有 click 才選中
+
+// ?嚙賡
+document.getElementById('btn-mute').addEventListener('click',()=>{
+  muted=!muted;
+  document.getElementById('btn-mute').textContent=muted?'MUTED':'MUTE';
+  document.getElementById('btn-mute').classList.toggle('active',muted);
+});
+
+// 敹恍芋嚙?
+
+
+// ?嚙賜
+document.addEventListener('keydown',e=>{
+  const k=e.key;
+  if(k==='ArrowLeft'||k==='a')pressA();
+  else if(k==='ArrowRight'||k==='c')pressC();
+  else if(k==='Enter'||k===' '||k==='b')pressB();
+  // A+C via keyboard
+  if(k==='a'||k==='A'){aDown=true;tryReset();}
+  if(k==='c'||k==='C'){cDown=true;tryReset();}
+});
+document.addEventListener('keyup',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='a'){aDown=false;cancelReset();}
+  if(k==='c'){cDown=false;cancelReset();}
+});
+
+// ?嚙?嚙??嚙踝蕭? ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
+// 皜祈岫璅∴蕭?嚗蕭??嚙踝蕭?瑼蕭?敺蕭?憪?嚙賡＊嚙?
+try{
+  if(loadPet()){
+    applyOffline();
+    // 睡覺中讓燈光圖標獲得駐點
+    if(pet&&pet.sleeping) menuIdx=MENUS.indexOf('light');
+    renderIcons();render();renderHUD();
+    if(pet&&pet.sleeping) startSleepRaf(); else startIdleRaf();
+  } else {
+    pet=null;
+    renderIcons();render();renderHUD();
+    startIdleRaf();
+  }
+}catch(e){
+  pet=null;
+  renderIcons();render();renderHUD();
+  startIdleRaf();
+} // ???恍銋?閬?RAF 靘?????
+
+setInterval(tick,TICK_MS);
+
+window.addEventListener('beforeunload',()=>{
+  if(pet){pet.lastTs=Date.now();save();}
+});
+
+try{localStorage.setItem('lastPlayed','Tamagotchi.html');}catch(e){}
+</script>
+</body>
+</html>
