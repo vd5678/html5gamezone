@@ -289,6 +289,12 @@ body{
 const cv  = document.getElementById('screen');
 const ctx = cv.getContext('2d');
 const W = 168, H = 152;
+// HiDPI: scale canvas buffer by devicePixelRatio so text/sprites are crisp
+const DPR = Math.min(window.devicePixelRatio || 1, 3);
+cv.width  = W * DPR;
+cv.height = H * DPR;
+cv.style.width  = W + 'px';
+cv.style.height = H + 'px';
 
 // ?嚙?嚙??嚙踝蕭??嚙賣 ?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?嚙?
 const TICK_MS = 1000;
@@ -1442,6 +1448,8 @@ function sprKey(){
 }
 
 function bg(dark){
+  // Reapply DPR transform at start of every frame (safe after any save/restore)
+  ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.fillStyle=dark?LCD_DARK:LCD_LIGHT;
   ctx.fillRect(0,0,W,H);
 }
